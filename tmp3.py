@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 
 
-LOCATION = ".\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
+LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
 os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
 OracleConnect = cx_Oracle.connect("silver", "silver", "192.168.20.13:1521/IDTCORA")       # 오라클 연동 정보입력
 OracleCursor = OracleConnect.cursor()           #오라클 sql문 쓰기 위한 커서
@@ -151,13 +151,32 @@ merge_table.drop(['APPR_YMD', 'YMD_x', 'TYPE', 'APPL_ID', 'APPL_TXT', 'TIME'], a
 # print(merge_table.loc[49]['OVER2_ID'])
 # print(merge_table.loc[50]['OVER2_ID'])
 
-merge_table.fillna('None', inplace=True)
 merge_table['YMD_y']=datetime.now().strftime('%Y%m%d')
-print(merge_table.head(60))
+# print(merge_table.head(60))
+merge_table.groupby('EMP_ID').apply(lambda x: x['HOME_ID']+x['HOME_ID'])
+merge_table.fillna('None', inplace=True)
+print(merge_table.head(30))
 
-for i in range(len(merge_table)):
-    sql="INSERT INTO `EHR_CAL` (`NUM`, `YMD`, `EMP_ID`,`DAYOFF1_TIME`,`DAYOFF1_ID`,`DAYOFF2_TIME`,`DAYOFF2_ID`,`DAYOFF3_TIME`,`DAYOFF3_ID`,`DAYOFF4_TIME`,`DAYOFF4_ID`,`OVER1_TIME`,`OVER1_ID`,`OVER2_TIME`,`OVER2_ID`,`OVER3_TIME`,`OVER3_ID`,`OVER4_TIME`,`OVER4_ID`,`BUSI_TRIP1_TIME`,`BUSI_TRIP1_ID`,`BUSI_TRIP2_TIME`,`BUSI_TRIP2_ID`,`BUSI_TRIP3_TIME`,`BUSI_TRIP3_ID`,`BUSI_TRIP4_TIME`,`BUSI_TRIP4_ID`,`HOME_ID`,`ETC_INFO`,`ETC_ID`) VALUES ("+"'"+str(i)+"'"+","+"'"+str(merge_table.loc[i][28])+"'"+","+"'"+str(merge_table.loc[i][0])+"'"+","+"'"+str(merge_table.loc[i][1])+"'"+","+"'"+str(merge_table.loc[i][2])+"'"+","+"'"+str(merge_table.loc[i][3])+"'"+","+"'"+str(merge_table.loc[i][4])+"'"+","+"'"+str(merge_table.loc[i][5])+"'"+","+"'"+str(merge_table.loc[i][6])+"'"+","+"'"+str(merge_table.loc[i][7])+"'"+","+"'"+str(merge_table.loc[i][8])+"'"+","+"'"+str(merge_table.loc[i][9])+"'"+","+"'"+str(merge_table.loc[i][10])+"'"+","+"'"+str(merge_table.loc[i][11])+"'"+","+"'"+str(merge_table.loc[i][12])+"'"+","+"'"+str(merge_table.loc[i][13])+"'"+","+"'"+str(merge_table.loc[i][14])+"'"+","+"'"+str(merge_table.loc[i][15])+"'"+","+"'"+str(merge_table.loc[i][16])+"'"+","+"'"+str(merge_table.loc[i][17])+"'"+","+"'"+str(merge_table.loc[i][18])+"'"+","+"'"+str(merge_table.loc[i][19])+"'"+","+"'"+str(merge_table.loc[i][20])+"'"+","+"'"+str(merge_table.loc[i][21])+"'"+","+"'"+str(merge_table.loc[i][22])+"'"+","+"'"+str(merge_table.loc[i][23])+"'"+","+"'"+str(merge_table.loc[i][24])+"'"+","+"'"+str(merge_table.loc[i][25])+"'"+","+"'"+str(merge_table.loc[i][26])+"'"+","+"'"+str(merge_table.loc[i][27])+"'"+")"
-    cur.execute(sql)    
+for line in range(len(merge_table)):
+    if line==0:
+        pass
+    elif merge_table.loc[line]['EMP_ID']==merge_table.loc[line-1]['EMP_ID']:
+        for i in range(29):
+            if merge_table.loc[line-1][i]== 'None':
+                merge_table.loc[line-1][i]=merge_table.loc[line][i]
+                merge_table.drop([line], inplace=True)
+                merge_table.reset_index()
+                i-=1
+    else:
+        pass
+
+print(merge_table.head(30))
+
+
+
+# for i in range(len(merge_table)):
+#     sql="INSERT INTO `EHR_CAL` (`NUM`, `YMD`, `EMP_ID`,`DAYOFF1_TIME`,`DAYOFF1_ID`,`DAYOFF2_TIME`,`DAYOFF2_ID`,`DAYOFF3_TIME`,`DAYOFF3_ID`,`DAYOFF4_TIME`,`DAYOFF4_ID`,`OVER1_TIME`,`OVER1_ID`,`OVER2_TIME`,`OVER2_ID`,`OVER3_TIME`,`OVER3_ID`,`OVER4_TIME`,`OVER4_ID`,`BUSI_TRIP1_TIME`,`BUSI_TRIP1_ID`,`BUSI_TRIP2_TIME`,`BUSI_TRIP2_ID`,`BUSI_TRIP3_TIME`,`BUSI_TRIP3_ID`,`BUSI_TRIP4_TIME`,`BUSI_TRIP4_ID`,`HOME_ID`,`ETC_INFO`,`ETC_ID`) VALUES ("+"'"+str(i)+"'"+","+"'"+str(merge_table.loc[i][28])+"'"+","+"'"+str(merge_table.loc[i][0])+"'"+","+"'"+str(merge_table.loc[i][1])+"'"+","+"'"+str(merge_table.loc[i][2])+"'"+","+"'"+str(merge_table.loc[i][3])+"'"+","+"'"+str(merge_table.loc[i][4])+"'"+","+"'"+str(merge_table.loc[i][5])+"'"+","+"'"+str(merge_table.loc[i][6])+"'"+","+"'"+str(merge_table.loc[i][7])+"'"+","+"'"+str(merge_table.loc[i][8])+"'"+","+"'"+str(merge_table.loc[i][9])+"'"+","+"'"+str(merge_table.loc[i][10])+"'"+","+"'"+str(merge_table.loc[i][11])+"'"+","+"'"+str(merge_table.loc[i][12])+"'"+","+"'"+str(merge_table.loc[i][13])+"'"+","+"'"+str(merge_table.loc[i][14])+"'"+","+"'"+str(merge_table.loc[i][15])+"'"+","+"'"+str(merge_table.loc[i][16])+"'"+","+"'"+str(merge_table.loc[i][17])+"'"+","+"'"+str(merge_table.loc[i][18])+"'"+","+"'"+str(merge_table.loc[i][19])+"'"+","+"'"+str(merge_table.loc[i][20])+"'"+","+"'"+str(merge_table.loc[i][21])+"'"+","+"'"+str(merge_table.loc[i][22])+"'"+","+"'"+str(merge_table.loc[i][23])+"'"+","+"'"+str(merge_table.loc[i][24])+"'"+","+"'"+str(merge_table.loc[i][25])+"'"+","+"'"+str(merge_table.loc[i][26])+"'"+","+"'"+str(merge_table.loc[i][27])+"'"+")"
+#     cur.execute(sql)    
 
         # sql =f"""
         # INSERT INTO `EHR_CAL` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
