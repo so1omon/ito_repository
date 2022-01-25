@@ -1,10 +1,9 @@
-import cx_Oracle         # 오라클과 연동하는 패키지
+import cx_Oracle 
 import os
-import pymysql             # mariadb와 연동하는 패키지
+import pymysql 
 import pandas as pd
 from datetime import datetime
-from login_info import cx_Oracle_info as cxinfo
-from login_info import pymysql_info as mysqlinfo
+from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo, date_diff #date_diff:날짜 차이 구하기 위한 객체
 
 LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
 os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
@@ -15,7 +14,7 @@ conn=pymysql.connect(host=mysqlinfo['host'], user=mysqlinfo['user'], password=my
                      db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
 cur=conn.cursor() #pymysql 커서
 
-for days in range(1,23): #sysdate-23일부터 sysdate-1일까지
+for days in range(1,date_diff.days+1): #1월 3일부터 실행시간 기준으로 어제까지
     print(days)
     oracleSql = f"""
     select NVL(A.trg_emp_id, 'NULL') AS EMP_ID, A.appr_ymd, NVL(NVL(B.ymd, C.ymd), 'NULL') AS YMD, NVL(NVL(B.sta_hm, C.sta_hm), 'NULL') AS STA_HM, 
@@ -90,6 +89,8 @@ for days in range(1,23): #sysdate-23일부터 sysdate-1일까지
 
     origin_table.reset_index(inplace=True, drop=False)
 
+    insert_flag=0 # 값이 삽입되었다는 것을 알리는 플래그. 1이 되면 string list 탐색을 중지하고 다음 origin table튜플을 탐색
+    
     # 연차 / 초과근무 / 출장
     for idx in range(len(origin_table)):
         rows_origin=origin_table.loc[idx] #origin table 행
@@ -158,6 +159,6 @@ for days in range(1,23): #sysdate-23일부터 sysdate-1일까지
         sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 31개의 parameters
         cur.execute(sql, list(merge_table.loc[i]))
     conn.commit()
-        
+    
 conn.close()
 OracleConnect.close()
