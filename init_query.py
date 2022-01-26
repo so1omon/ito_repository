@@ -41,8 +41,6 @@ for days in range(1,date_diff.days+1): #1월 3일부터 실행시간 기준으�
 
     today=origin_table.at[1, 'YMD']
 
-    bf_appl_id_list=[origin_table['BF_APPL_ID'].unique()]
-    origin_table = origin_table.drop(index=origin_table.loc[origin_table.APPL_ID.isin(bf_appl_id_list)].index)
     #1. bf_appl_list와 매칭되는 행 삭제
     origin_table = origin_table.drop(index=origin_table.loc[origin_table.DEL_YN == 'Y'].index)
     #2. DEL_YN이 Y인 행 삭제

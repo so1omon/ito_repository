@@ -14,8 +14,6 @@ conn=pymysql.connect(host=mysqlinfo['host'], user=mysqlinfo['user'], password=my
                      db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
 cur=conn.cursor() #pymysql 커서
 
-days=int(input("몇일 전 데이터를 가져오는지?"))
-print(days)
 oracleSql = f"""
 select NVL(A.trg_emp_id, 'NULL') AS EMP_ID, A.appr_ymd, NVL(NVL(B.ymd, C.ymd), 'NULL') AS YMD, NVL(NVL(B.sta_hm, C.sta_hm), 'NULL') AS STA_HM, 
 NVL(NVL(B.end_hm, C.end_hm),'NULL') AS END_HM, NVL(A.appl_type, 'NULL') AS TYPE, a.appl_id AS APPL_ID, 
@@ -28,8 +26,8 @@ left join(select ymd, attend_cd, sta_hm, end_hm, appl_id, del_yn
 from ehr2011060.tam5450) C
 on a.appl_id = c.appl_id
 where a.appl_stat_cd = '900' and (( (a.appl_type='1002' or a.appl_type='1004' or a.appl_type='1008' or a.appl_type='1010') 
-and NVL(B.ymd, C.ymd)=(SELECT TO_CHAR(SYSDATE-{days}, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)) 
-or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE-{days}, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL))
+and NVL(B.ymd, C.ymd)=(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)) 
+or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL))
 """
 OracleCursor.execute(oracleSql)
 origin_table=pd.DataFrame()
@@ -38,8 +36,6 @@ for line in OracleCursor:
     data={'EMP_ID':line[0], 'APPR_YMD':line[1], 'YMD':line[2], 'STA_HM':line[3], 'END_HM':line[4], 'TYPE':line[5], 
         'APPL_ID':line[6], 'DEL_YN':line[7], 'BF_APPL_ID':line[8], 'APPL_TXT':line[9], 'REWARD_TYPE':line[10]}
     origin_table=origin_table.append(data,ignore_index=True)
-    if line[6]=='5798':
-        print(data)
 
 today=origin_table.at[1, 'YMD']
 
@@ -151,8 +147,6 @@ for idx in range(len(origin_table)):
     elif rows_origin['TYPE']=='1004': #기타휴가 
         merge_table.at[merge_index, 'ETC_INFO']=rows_origin['APPL_TXT']
         merge_table.at[merge_index, 'ETC_ID']=rows_origin['APPL_ID']
-
-print(merge_table[merge_table["EMP_ID"]=="20180005"])
 
 parameters='%s,'*31 
 
