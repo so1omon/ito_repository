@@ -31,11 +31,13 @@ or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE-1, 'YY
 OracleCursor.execute(oracleSql)
 origin_table=pd.DataFrame()
 
+####### origin table에 신청 기록 받아오기 #######
 for line in OracleCursor:
     data={'EMP_ID':line[0], 'APPR_YMD':line[1], 'YMD':line[2], 'STA_HM':line[3], 'END_HM':line[4], 'TYPE':line[5], 
         'APPL_ID':line[6], 'DEL_YN':line[7], 'BF_APPL_ID':line[8], 'APPL_TXT':line[9]}
     origin_table=origin_table.append(data,ignore_index=True)
 
+####### origin table 취소기록 적용하여 정리하기 #######
 bf_appl_id_list=[origin_table['BF_APPL_ID'].unique()]
 origin_table = origin_table.drop(index=origin_table.loc[origin_table.APPL_ID.isin(bf_appl_id_list)].index)
 #1. bf_appl_list와 매칭되는 행 삭제
@@ -44,6 +46,7 @@ origin_table = origin_table.drop(index=origin_table.loc[origin_table.DEL_YN == '
 origin_table = origin_table.drop(index=origin_table.loc[origin_table.BF_APPL_ID != 'NULL'].index)
 #3. bf_appl_id가 NULL이 아닌 행 삭제
 origin_table = origin_table.drop(index=origin_table.loc[(origin_table.TYPE=='1010') & (origin_table.YMD == 'NULL')].index)
+
 
 origin_table['TIME']=origin_table['STA_HM']+'~'+origin_table['END_HM']
 origin_table.drop(['DEL_YN', 'BF_APPL_ID'], axis = 'columns', inplace= True)
