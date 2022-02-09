@@ -25,8 +25,8 @@ left join(select ymd, attend_cd, sta_hm, end_hm, appl_id, del_yn
 from ehr2011060.tam5450) C
 on a.appl_id = c.appl_id
 where a.appl_stat_cd = '900' and (((a.appl_type='1002' or a.appl_type='1004' or a.appl_type='1008' or a.appl_type='1010') 
-and NVL(B.ymd, C.ymd)=(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)) 
-or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL))
+and NVL(B.ymd, C.ymd)=(SELECT TO_CHAR(SYSDATE-1, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)) 
+or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE-1, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL))
 """
 OracleCursor.execute(oracleSql)
 origin_table=pd.DataFrame()
@@ -141,19 +141,11 @@ for line in range(len(merge_table)):
         dayoff=1
         busi_trip=1
 
+
 merge_table.drop(['APPR_YMD', 'YMD_x', 'TYPE', 'APPL_ID', 'APPL_TXT', 'TIME'], axis = 'columns', inplace= True)
 
-# print(merge_table.duplicated('EMP_ID').head(60))
-# pd.set_option('display.max_columns', 400)
-# pd.set_option('display.max_row', 3000)
+# merge_table['YMD_y']=datetime.now().strftime('%Y%m%d')
 
-# print(merge_table)
-# print(merge_table.loc[49]['OVER2_ID'])
-# print(merge_table.loc[50]['OVER2_ID'])
-
-merge_table['YMD_y']=datetime.now().strftime('%Y%m%d')
-# print(merge_table.head(60))
-merge_table.groupby('EMP_ID').apply(lambda x: x['HOME_ID']+x['HOME_ID'])
 merge_table.fillna('None', inplace=True)
 print(merge_table.head(30))
 
@@ -164,19 +156,18 @@ for line in range(len(merge_table)):
         for i in range(29):
             if merge_table.loc[line-1][i]== 'None':
                 merge_table.loc[line-1][i]=merge_table.loc[line][i]
-                merge_table.drop([line], inplace=True)
-                merge_table.reset_index()
-                i-=1
+                # merge_table.drop([line], inplace=True)
+                # merge_table.reset_index()
+                # i-=1
     else:
         pass
 
-print(merge_table.head(30))
 
+print(merge_table)
 
-
-# for i in range(len(merge_table)):
-#     sql="INSERT INTO `EHR_CAL` (`NUM`, `YMD`, `EMP_ID`,`DAYOFF1_TIME`,`DAYOFF1_ID`,`DAYOFF2_TIME`,`DAYOFF2_ID`,`DAYOFF3_TIME`,`DAYOFF3_ID`,`DAYOFF4_TIME`,`DAYOFF4_ID`,`OVER1_TIME`,`OVER1_ID`,`OVER2_TIME`,`OVER2_ID`,`OVER3_TIME`,`OVER3_ID`,`OVER4_TIME`,`OVER4_ID`,`BUSI_TRIP1_TIME`,`BUSI_TRIP1_ID`,`BUSI_TRIP2_TIME`,`BUSI_TRIP2_ID`,`BUSI_TRIP3_TIME`,`BUSI_TRIP3_ID`,`BUSI_TRIP4_TIME`,`BUSI_TRIP4_ID`,`HOME_ID`,`ETC_INFO`,`ETC_ID`) VALUES ("+"'"+str(i)+"'"+","+"'"+str(merge_table.loc[i][28])+"'"+","+"'"+str(merge_table.loc[i][0])+"'"+","+"'"+str(merge_table.loc[i][1])+"'"+","+"'"+str(merge_table.loc[i][2])+"'"+","+"'"+str(merge_table.loc[i][3])+"'"+","+"'"+str(merge_table.loc[i][4])+"'"+","+"'"+str(merge_table.loc[i][5])+"'"+","+"'"+str(merge_table.loc[i][6])+"'"+","+"'"+str(merge_table.loc[i][7])+"'"+","+"'"+str(merge_table.loc[i][8])+"'"+","+"'"+str(merge_table.loc[i][9])+"'"+","+"'"+str(merge_table.loc[i][10])+"'"+","+"'"+str(merge_table.loc[i][11])+"'"+","+"'"+str(merge_table.loc[i][12])+"'"+","+"'"+str(merge_table.loc[i][13])+"'"+","+"'"+str(merge_table.loc[i][14])+"'"+","+"'"+str(merge_table.loc[i][15])+"'"+","+"'"+str(merge_table.loc[i][16])+"'"+","+"'"+str(merge_table.loc[i][17])+"'"+","+"'"+str(merge_table.loc[i][18])+"'"+","+"'"+str(merge_table.loc[i][19])+"'"+","+"'"+str(merge_table.loc[i][20])+"'"+","+"'"+str(merge_table.loc[i][21])+"'"+","+"'"+str(merge_table.loc[i][22])+"'"+","+"'"+str(merge_table.loc[i][23])+"'"+","+"'"+str(merge_table.loc[i][24])+"'"+","+"'"+str(merge_table.loc[i][25])+"'"+","+"'"+str(merge_table.loc[i][26])+"'"+","+"'"+str(merge_table.loc[i][27])+"'"+")"
-#     cur.execute(sql)    
+for i in range(len(merge_table)):
+    sql="INSERT INTO `EHR_CAL` (`NUM`, `YMD`, `EMP_ID`,`DAYOFF1_TIME`,`DAYOFF1_ID`,`DAYOFF2_TIME`,`DAYOFF2_ID`,`DAYOFF3_TIME`,`DAYOFF3_ID`,`DAYOFF4_TIME`,`DAYOFF4_ID`,`OVER1_TIME`,`OVER1_ID`,`OVER2_TIME`,`OVER2_ID`,`OVER3_TIME`,`OVER3_ID`,`OVER4_TIME`,`OVER4_ID`,`BUSI_TRIP1_TIME`,`BUSI_TRIP1_ID`,`BUSI_TRIP2_TIME`,`BUSI_TRIP2_ID`,`BUSI_TRIP3_TIME`,`BUSI_TRIP3_ID`,`BUSI_TRIP4_TIME`,`BUSI_TRIP4_ID`,`HOME_ID`,`ETC_INFO`,`ETC_ID`) VALUES ("+"'"+str(i)+"'"+","+"'"+str(merge_table.loc[i][28])+"'"+","+"'"+str(merge_table.loc[i][0])+"'"+","+"'"+str(merge_table.loc[i][1])+"'"+","+"'"+str(merge_table.loc[i][2])+"'"+","+"'"+str(merge_table.loc[i][3])+"'"+","+"'"+str(merge_table.loc[i][4])+"'"+","+"'"+str(merge_table.loc[i][5])+"'"+","+"'"+str(merge_table.loc[i][6])+"'"+","+"'"+str(merge_table.loc[i][7])+"'"+","+"'"+str(merge_table.loc[i][8])+"'"+","+"'"+str(merge_table.loc[i][9])+"'"+","+"'"+str(merge_table.loc[i][10])+"'"+","+"'"+str(merge_table.loc[i][11])+"'"+","+"'"+str(merge_table.loc[i][12])+"'"+","+"'"+str(merge_table.loc[i][13])+"'"+","+"'"+str(merge_table.loc[i][14])+"'"+","+"'"+str(merge_table.loc[i][15])+"'"+","+"'"+str(merge_table.loc[i][16])+"'"+","+"'"+str(merge_table.loc[i][17])+"'"+","+"'"+str(merge_table.loc[i][18])+"'"+","+"'"+str(merge_table.loc[i][19])+"'"+","+"'"+str(merge_table.loc[i][20])+"'"+","+"'"+str(merge_table.loc[i][21])+"'"+","+"'"+str(merge_table.loc[i][22])+"'"+","+"'"+str(merge_table.loc[i][23])+"'"+","+"'"+str(merge_table.loc[i][24])+"'"+","+"'"+str(merge_table.loc[i][25])+"'"+","+"'"+str(merge_table.loc[i][26])+"'"+","+"'"+str(merge_table.loc[i][27])+"'"+")"
+    cur.execute(sql)    
 
         # sql =f"""
         # INSERT INTO `EHR_CAL` VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
