@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import datetime
 from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
 
-LOCATION = ".\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
+LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
 os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
 OracleConnect = cx_Oracle.connect(cxinfo['id'], cxinfo['pw'], cxinfo['host'])       # 오라클 연동 정보입력
 OracleCursor = OracleConnect.cursor()  #오라클 sql문 쓰기 위한 커서
