@@ -1,4 +1,16 @@
-start='0930'
-end='1000'
+from datetime import timedelta
+start='0900'
+end='2100'
 
-print(str(int(start)+int(end)))
+delta_start=timedelta(
+    minutes=int(start[-2:]),
+    hours=int(start[:2])
+)
+
+delta_end=timedelta(
+    minutes=int(end[-2:]),
+    hours=int(end[:2])
+)
+
+print(str(delta_end-delta_start).zfill(8))
+    

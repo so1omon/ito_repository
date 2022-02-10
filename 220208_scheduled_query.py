@@ -620,6 +620,55 @@ for i in range(len(merge_table)):
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
                 merge_table.loc[i]['FIX1'] = fixtime
+
+#초과근무 시간 계산
+from datetime import timedelta
+for i in range(len(merge_table)):
+    cal_overtime=0
+    if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9:#FIX1이 None이거나 시작또는 끝이 비어있을때
+        cal_overtime='0000'
+    else: #정상적인 경우
+        # cal_overtime=int(merge_table.loc[i]['FIX1'][-4:])-int(merge_table.loc[i]['FIX1'][:4])-900
+        cal_overtime_start=timedelta(
+            minutes=int(merge_table.loc[i]['FIX1'][2:4]),
+            hours=int(merge_table.loc[i]['FIX1'][:2]),
+        )
+        cal_overtime_end=timedelta(
+            minutes=int(merge_table.loc[i]['FIX1'][-2:]),
+            hours=int(merge_table.loc[i]['FIX1'][-4:-2]),
+        )
+        cal_overtime=str(cal_overtime_end-cal_overtime_start-timedelta(hours=9)).zfill(8)
+        cal_overtime=cal_overtime[:2]+cal_overtime[3:5]
+        if cal_overtime[0]=='-': #음수일때
+           cal_overtime='0000'
+        elif int(cal_overtime)>=400: # 4시간 초과할때
+            cal_overtime='0400'
+    
+    merge_table.loc[i]['CAL_OVERTIME']=cal_overtime
+
+#급량비 계산
+for i in range(len(merge_table)):
+    merge_table[i]['CAL_MEAL']='FALSE'
+    work_time_range=''#근무유형 시간 범위
+    
+    if int(merge_table[i]['CAL_OVERTIME'])<100: # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
+        continue
+    
+    if merge_table[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9: #잘못된 정보 들어가있으면 급량비 산정 FALSE
+        continue
+    
+    if merge_table[i]['WORK_TYPE']=='0060': #주말근무일 때 
+        if int(merge_table[i]['CAL_OVERTIME'])>=200: #2시간 이상이어야 TRUE
+            merge_table[i]['CAL_MEAL']='TRUE'
+
+    elif merge_table[i]['SHIFT_CD']=='0030': # 09~18 근무자일 때
+        # 시작시간이 08시 이하거나 끝시간이 19시 이후이면
+        if int(merge_table[i]['FIX1'][:4])<=800 or int(merge_table[i]['FIX1'][-4:])<=800: 
+            merge_table[i]['CAL_MEAL']='TRUE'
+            
+    elif merge_table[i]['SHIFT_CD']=='0040': # 10~19 근무자일 때
+        if int(merge_table[i]['FIX1'][:4])<=800 or int(merge_table[i]['FIX1'][-4:])<=800:
+        
             
 
 parameters='%s,'*41
