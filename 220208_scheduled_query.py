@@ -55,7 +55,7 @@ origin_table.loc[origin_table.TIME =='NULL~NULL','TIME']='0000~0000'
 
 # pd.set_option('display.max_row', 2000) # 최대 출력 행 설정
 
-column=['YMD','EMP_ID','ORG_NM','SHIFT_CD','WORK_TYPE','PLAN', 'INOUT', 'FIX','DAYOFF1_TIME','DAYOFF1_ID','DAYOFF2_TIME','DAYOFF2_ID','DAYOFF3_TIME','DAYOFF3_ID','DAYOFF4_TIME','DAYOFF4_ID',
+column=['YMD','EMP_ID','ORG_NM','SHIFT_CD','WORK_TYPE','PLAN1','PLAN2', 'INOUT', 'FIX1','FIX2','DAYOFF1_TIME','DAYOFF1_ID','DAYOFF2_TIME','DAYOFF2_ID','DAYOFF3_TIME','DAYOFF3_ID','DAYOFF4_TIME','DAYOFF4_ID',
 'OVER1_TIME','OVER1_ID','OVER2_TIME','OVER2_ID','OVER3_TIME','OVER3_ID','OVER4_TIME','OVER4_ID','BUSI_TRIP1_TIME','BUSI_TRIP1_ID',
 'BUSI_TRIP2_TIME','BUSI_TRIP2_ID','BUSI_TRIP3_TIME','BUSI_TRIP3_ID','BUSI_TRIP4_TIME','BUSI_TRIP4_ID',
 'HOME_ID','ETC_INFO','ETC_ID','REWARD_TIME','REWARD_ID','CAL_OVERTIME','CAL_MEAL']
@@ -180,7 +180,7 @@ for i in range(len(merge_table)):
             overtime = overtime + over_end
         else:
             overtime = overtime + std_end
-        merge_table.loc[i]['PLAN'] = overtime   #새로 컬럼 만들어서 넣어야 함
+        merge_table.loc[i]['PLAN1'] = overtime   #새로 컬럼 만들어서 넣어야 함
 
 
 
@@ -209,7 +209,7 @@ for i in range(len(merge_table)):
     else:
         if merge_table.loc[i]['SHIFT_CD']=='0030': #기본출퇴근자
             if merge_table.loc[i]['OVER1_TIME'] == 'None': #Plan 값 설정
-                merge_table.loc[i]['PLAN'] = '0900~1800'
+                merge_table.loc[i]['PLAN1'] = '0900~1800'
             if merge_table.loc[i]['INOUT'] == '~':
                 merge_table.loc[i]['INOUT'] = '0900~1800'
             elif merge_table.loc[i]['INOUT'][0] == '~':
@@ -227,28 +227,28 @@ for i in range(len(merge_table)):
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
                 #출근
-                if merge_table.loc[i]['PLAN'][:4] < '0900': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '0900': #출근이전 시간외 신청
                     if 510 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     else:
                         fixtime = '0900'
-                elif merge_table.loc[i]['PLAN'][:4] == '0900': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '0900': #출근이전 시간외 미신청
                     fixtime = '0900'
                 fixtime = fixtime + '~'
                 #퇴근
-                if merge_table.loc[i]['PLAN'][-4:] > '1800': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1800': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1110:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1800'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1800': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1800': #퇴근이전 시간외 미신청
                     fixtime = fixtime + '1800'
-                merge_table.loc[i]['FIX'] = fixtime
+                merge_table.loc[i]['FIX1'] = fixtime
 
             elif merge_table.loc[i]['WORK_TYPE']=='0290': #기본출퇴근자-재택
                 inout=''
@@ -263,11 +263,11 @@ for i in range(len(merge_table)):
                     inout += '1800'
                 else:
                     inout += inout_out
-                merge_table.loc[i]['FIX']= inout
+                merge_table.loc[i]['FIX1']= inout
 
         elif merge_table.loc[i]['SHIFT_CD']=='0020': #시차출퇴근(8-17),시차출퇴근(8-17)_재택
             if merge_table.loc[i]['OVER1_TIME'] == 'None': #Plan 값 설정
-                merge_table.loc[i]['PLAN'] = '0800~1700'
+                merge_table.loc[i]['PLAN1'] = '0800~1700'
             if merge_table.loc[i]['INOUT'][0] == '~' and merge_table.loc[i]['INOUT'][-1] == '~':
                 pass
             elif merge_table.loc[i]['INOUT'][0] == '~':
@@ -276,42 +276,42 @@ for i in range(len(merge_table)):
                 inout_end_hour = inout_end[:2]
                 inout_end_min = inout_end[-2:]
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
-                if merge_table.loc[i]['PLAN'][-4:] > '1700': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1700': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1050:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1700'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1700': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1700': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 1020:
                         fixtime +='1700'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = '~'+fixtime
+                merge_table.loc[i]['FIX1'] = '~'+fixtime
             elif merge_table.loc[i]['INOUT'][-1] == '~':
                 fixtime = ''
                 inout_start= merge_table.loc[i]['INOUT'][:4]
                 inout_start_hour = inout_start[:2]
                 inout_start_min = inout_start[-2:]
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
-                if merge_table.loc[i]['PLAN'][:4] < '0800': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '0800': #출근이전 시간외 신청
                     if 450 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  450 <= inout_start_cal <= 480:
                         fixtime = '0800'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '0800': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '0800': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '0800':
                         fixtime = '0800'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
-                merge_table.loc[i]['FIX']=fixtime
+                merge_table.loc[i]['FIX1']=fixtime
             else:
                 fixtime = ''
                 inout_start, inout_end = merge_table.loc[i]['INOUT'].split('~')
@@ -323,40 +323,40 @@ for i in range(len(merge_table)):
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
                 #출근
-                if merge_table.loc[i]['PLAN'][:4] < '0800': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '0800': #출근이전 시간외 신청
                     if 450 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  450 <= inout_start_cal <= 480:
                         fixtime = '0800'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '0800': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '0800': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '0800':
                         fixtime = '0800'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
                 #퇴근
-                if merge_table.loc[i]['PLAN'][-4:] > '1700': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1700': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1050:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1700'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1700': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1700': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 1020:
                         fixtime +='1700'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = fixtime
+                merge_table.loc[i]['FIX1'] = fixtime
 
         elif merge_table.loc[i]['SHIFT_CD']=='0040': #시차출퇴근(10-19), 시차출퇴근(10-19)_재택
             if merge_table.loc[i]['OVER1_TIME'] == 'None': #Plan 값 설정
-                merge_table.loc[i]['PLAN'] = '1000~1900'
+                merge_table.loc[i]['PLAN1'] = '1000~1900'
             if merge_table.loc[i]['INOUT'][0] == '~' and merge_table.loc[i]['INOUT'][-1] == '~':
                 pass
             elif merge_table.loc[i]['INOUT'][0] == '~':
@@ -365,42 +365,42 @@ for i in range(len(merge_table)):
                 inout_end_hour = inout_end[:2]
                 inout_end_min = inout_end[-2:]
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
-                if merge_table.loc[i]['PLAN'][-4:] > '1900': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1900': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1170:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1900'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1900': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1900': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 1140:
                         fixtime +='1900'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = '~'+fixtime
+                merge_table.loc[i]['FIX1'] = '~'+fixtime
             elif merge_table.loc[i]['INOUT'][-1] == '~':
                 fixtime = ''
                 inout_start= merge_table.loc[i]['INOUT'][:4]
                 inout_start_hour = inout_start[:2]
                 inout_start_min = inout_start[-2:]
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
-                if merge_table.loc[i]['PLAN'][:4] < '1000': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '1000': #출근이전 시간외 신청
                     if 570 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  570 <= inout_start_cal <= 600:
                         fixtime = '1000'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '1000': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '1000': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '1000':
                         fixtime = '1000'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
-                merge_table.loc[i]['FIX']=fixtime
+                merge_table.loc[i]['FIX1']=fixtime
             else:
                 fixtime = ''
                 inout_start, inout_end = merge_table.loc[i]['INOUT'].split('~')
@@ -412,40 +412,40 @@ for i in range(len(merge_table)):
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
                 #출근
-                if merge_table.loc[i]['PLAN'][:4] < '1000': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '1000': #출근이전 시간외 신청
                     if 570 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  570 <= inout_start_cal <= 600:
                         fixtime = '1000'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '1000': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '1000': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '1000':
                         fixtime = '1000'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
                 #퇴근
-                if merge_table.loc[i]['PLAN'][-4:] > '1900': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1900': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1170:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1900'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1900': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1900': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 1140:
                         fixtime +='1900'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = fixtime
+                merge_table.loc[i]['FIX1'] = fixtime
 
         elif merge_table.loc[i]['SHIFT_CD']=='0440':
             if merge_table.loc[i]['OVER1_TIME'] == 'None': #Plan 값 설정
-                merge_table.loc[i]['PLAN'] = '0800~1500'
+                merge_table.loc[i]['PLAN1'] = '0800~1500'
             if merge_table.loc[i]['INOUT'][0] == '~' and merge_table.loc[i]['INOUT'][-1]=='~':
                 pass
             elif merge_table.loc[i]['INOUT'][0] == '~':
@@ -454,42 +454,42 @@ for i in range(len(merge_table)):
                 inout_end_hour = inout_end[:2]
                 inout_end_min = inout_end[-2:]
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
-                if merge_table.loc[i]['PLAN'][-4:] > '1500': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1500': #퇴근이후 시간외 신청
                     if inout_end_cal >= 930:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1500'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1500': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1500': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 900:
                         fixtime +='1500'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = '~'+fixtime
+                merge_table.loc[i]['FIX1'] = '~'+fixtime
             elif merge_table.loc[i]['INOUT'][-1] == '~':
                 fixtime = ''
                 inout_start= merge_table.loc[i]['INOUT'][:4]
                 inout_start_hour = inout_start[:2]
                 inout_start_min = inout_start[-2:]
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
-                if merge_table.loc[i]['PLAN'][:4] < '0800': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '0800': #출근이전 시간외 신청
                     if 450 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  450 <= inout_start_cal <= 480:
                         fixtime = '0800'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '0800': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '0800': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '0800':
                         fixtime = '0800'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
-                merge_table.loc[i]['FIX']=fixtime
+                merge_table.loc[i]['FIX1']=fixtime
             else:
                 fixtime = ''
                 inout_start, inout_end = merge_table.loc[i]['INOUT'].split('~')
@@ -501,40 +501,40 @@ for i in range(len(merge_table)):
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
                 #출근
-                if merge_table.loc[i]['PLAN'][:4] < '0800': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '0800': #출근이전 시간외 신청
                     if 450 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  450 <= inout_start_cal <= 480:
                         fixtime = '0800'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '0800': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '0800': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '0800':
                         fixtime = '0800'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
                 #퇴근
-                if merge_table.loc[i]['PLAN'][-4:] > '1500': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1500': #퇴근이후 시간외 신청
                     if inout_end_cal >= 930:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1500'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1500': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1500': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 900:
                         fixtime +='1500'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = fixtime
+                merge_table.loc[i]['FIX1'] = fixtime
 
         elif merge_table.loc[i]['SHIFT_CD']=='0170':
             if merge_table.loc[i]['OVER1_TIME'] == 'None': #Plan 값 설정
-                merge_table.loc[i]['PLAN'] = '1000~1700'
+                merge_table.loc[i]['PLAN1'] = '1000~1700'
             if merge_table.loc[i]['INOUT'][0] == '~' and merge_table.loc[i]['INOUT'][-1] == '~':
                 pass
             elif merge_table.loc[i]['INOUT'][0] == '~':
@@ -543,42 +543,42 @@ for i in range(len(merge_table)):
                 inout_end_hour = inout_end[:2]
                 inout_end_min = inout_end[-2:]
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
-                if merge_table.loc[i]['PLAN'][-4:] > '1700': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1700': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1050:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1700'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1700': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1700': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 1020:
                         fixtime +='1700'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = '~'+ fixtime
+                merge_table.loc[i]['FIX1'] = '~'+ fixtime
             elif merge_table.loc[i]['INOUT'][-1] == '~':
                 fixtime = ''
                 inout_start= merge_table.loc[i]['INOUT'][:4]
                 inout_start_hour = inout_start[:2]
                 inout_start_min = inout_start[-2:]
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
-                if merge_table.loc[i]['PLAN'][:4] < '1000': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '1000': #출근이전 시간외 신청
                     if 570 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  570 <= inout_start_cal <= 600:
                         fixtime = '1000'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '1000': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '1000': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '1000':
                         fixtime = '1000'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
-                merge_table.loc[i]['FIX'] = fixtime
+                merge_table.loc[i]['FIX1'] = fixtime
             else:
                 fixtime = ''
                 inout_start, inout_end = merge_table.loc[i]['INOUT'].split('~')
@@ -590,44 +590,44 @@ for i in range(len(merge_table)):
                 inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
                 inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
                 #출근
-                if merge_table.loc[i]['PLAN'][:4] < '1000': #출근이전 시간외 신청
+                if merge_table.loc[i]['PLAN1'][:4] < '1000': #출근이전 시간외 신청
                     if 570 >= inout_start_cal: #30분 빼고 비교
                         fixtime = inout_start
-                        if merge_table.loc[i]['PLAN'][:4] > inout_start:
-                            fixtime = merge_table.loc[i]['PLAN'][:4]
+                        if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                            fixtime = merge_table.loc[i]['PLAN1'][:4]
                     elif  570 <= inout_start_cal <= 600:
                         fixtime = '1000'
                     else:
                         fixtime= merge_table.loc[i]['INOUT'][:4]
-                elif merge_table.loc[i]['PLAN'][:4] == '1000': #출근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][:4] == '1000': #출근이전 시간외 미신청
                     if merge_table.loc[i]['INOUT'][:4] < '1000':
                         fixtime = '1000'
                     else:
                         fixtime = merge_table.loc[i]['INOUT'][:4]
                 fixtime = fixtime + '~'
                 #퇴근
-                if merge_table.loc[i]['PLAN'][-4:] > '1700': #퇴근이후 시간외 신청
+                if merge_table.loc[i]['PLAN1'][-4:] > '1700': #퇴근이후 시간외 신청
                     if inout_end_cal >= 1050:
-                        if merge_table.loc[i]['PLAN'][-4:] < inout_end:
-                            fixtime = fixtime + merge_table.loc[i]['PLAN'][-4:]
+                        if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                            fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
                         else:
                             fixtime += inout_end                  
                     else:
                         fixtime = fixtime + '1700'
-                elif merge_table.loc[i]['PLAN'][-4:] == '1700': #퇴근이전 시간외 미신청
+                elif merge_table.loc[i]['PLAN1'][-4:] == '1700': #퇴근이전 시간외 미신청
                     if inout_end_cal >= 1020:
                         fixtime +='1700'
                     else:
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
-                merge_table.loc[i]['FIX'] = fixtime
+                merge_table.loc[i]['FIX1'] = fixtime
             
 
-parameters='%s,'*39
+parameters='%s,'*41
 
 # print(merge_table.head(40))
 
 for i in range(len(merge_table)):
-    sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 39개의 parameters
+    sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 41개의 parameters
     cur.execute(sql, list(merge_table.loc[i]))
 conn.commit()
 conn.close()
