@@ -704,7 +704,7 @@ for i in range(len(merge_table)):
             
     elif merge_table[i]['SHIFT_CD']=='0040': # 10~19 근무자일 때
         if int(merge_table[i]['FIX1'][:4])<=800 or int(merge_table[i]['FIX1'][-4:])<=800:
-        
+            pass
             
 parameters='%s,'*41
 
