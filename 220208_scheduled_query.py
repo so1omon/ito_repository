@@ -151,7 +151,7 @@ for idx in range(len(origin_table)):
         merge_table.at[merge_index, 'ETC_ID']=rows_origin['APPL_ID']
 
     #근무유형 삽입하기
-OracleCursor.execute("SELECT EMP_ID,SHIFT_CD,WORK_TYPE FROM EHR2011060.TAM5400_V WHERE YMD =(SELECT TO_CHAR(SYSDATE-3, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)")
+OracleCursor.execute(f"SELECT EMP_ID,SHIFT_CD,WORK_TYPE FROM EHR2011060.TAM5400_V WHERE YMD =(SELECT TO_CHAR(SYSDATE-{days_offset}, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)")
 insert_table=pd.DataFrame() #근무유형 데이터프레임
 
 for line in OracleCursor:
@@ -190,10 +190,10 @@ for i in range(len(merge_table)):
 for i in range(len(emp_id)):
     inout = ''
     tmp_end = ''
-    cur.execute("SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + " = T.EMP_CODE AND (DATE_FORMAT(CURDATE()-3, '%Y%m%d')) = T.WORK_DATE AND T.WORK_CD = 'IN' ORDER BY T.WORK_INFO_CLOCK LIMIT 1")
+    cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND (DATE_FORMAT(CURDATE()-{days_offset}, '%Y%m%d')) = T.WORK_DATE AND T.WORK_CD = 'IN' ORDER BY T.WORK_INFO_CLOCK LIMIT 1")
     for line in cur:
         inout = line[0]
-    cur.execute("SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + " = T.EMP_CODE AND (DATE_FORMAT(CURDATE()-3, '%Y%m%d')) = T.WORK_DATE AND T.WORK_CD = 'OUT' ORDER BY T.WORK_INFO_CLOCK DESC LIMIT 1")
+    cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND (DATE_FORMAT(CURDATE()-{days_offset}, '%Y%m%d')) = T.WORK_DATE AND T.WORK_CD = 'OUT' ORDER BY T.WORK_INFO_CLOCK DESC LIMIT 1")
     inout = inout + '~'
     for line in cur:
         tmp_end = line[0]
@@ -706,6 +706,9 @@ for i in range(len(merge_table)):
 
     elif merge_table.loc[i]['SHIFT_CD']=='0030': # 09~18 근무자일 때
         # 시작시간이 08시 이하거나 끝시간이 19시 이후이면
+        if merge_table.loc[i]['EMP_ID']=='20150026':
+            print(merge_table.loc[i]['FIX1'])
+        
         if merge_table.loc[i]['FIX1'][:4]<='800' or merge_table.loc[i]['FIX1'][-4:]>='1900': 
             merge_table.loc[i]['CAL_MEAL']='TRUE'
             
