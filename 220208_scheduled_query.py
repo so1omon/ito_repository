@@ -213,34 +213,52 @@ for i in range(len(merge_table)):
             if merge_table.loc[i]['OVER1_TIME'] == 'None': #Plan 값 설정
                 merge_table.loc[i]['PLAN1'] = '0900~1800'
                 merge_table.loc[i]['PLAN2'] = '0900~1800'
-            if merge_table.loc[i]['DAYOFF1_TIME'] != 'None' and merge_table.loc[i]['INOUT'] == '~':
-                merge_table.loc[i]['INOUT'] = '0900~1800'
+            if merge_table.loc[i]['DAYOFF1_TIME'] == '0900~1800':
+                merge_table.loc[i]['PLAN2'] = '전일연차'
+            if merge_table.loc[i]['BUSI_TRIP1_TIME'] == '0900~1800':
+                merge_table.loc[i]['PLAN2'] = '0900~1800'
             if merge_table.loc[i]['INOUT'] == '~':
                 if merge_table.loc[i]['DAYOFF1_TIME'] == '0900~1800':
                     merge_table.loc[i]['PLAN2'] = '전일연차'
+                elif merge_table.loc[i]['DAYOFF1_TIME'] != 'None':
+                    if merge_table.loc[i]['PLAN2'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['PLAN2'][:4]+ '~' +merge_table.loc[i]['DAYOFF1_TIME'][:4]
+                    if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['DAYOFF1_TIME'][-4:] +'~'+ merge_table.loc[i]['PLAN2'][-4:] #모두 적용 필요
                 if merge_table.loc[i]['BUSI_TRIP1_TIME'] == '0900~1800':
                     merge_table.loc[i]['PLAN2'] = '0900~1800'
+                elif merge_table.loc[i]['BUSI_TRIP1_TIME'] != 'None':
+                    if merge_table.loc[i]['PLAN2'][-4:] == merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['PLAN2'][:4]+'~'+ merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]
+                    if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:] +'~'+ merge_table.loc[i]['PLAN2'][-4:] #모두 적용 필요
                 merge_table.loc[i]['INOUT'] = '0900~1800'
             elif merge_table.loc[i]['INOUT'][0] == '~':
                 merge_table.loc[i]['INOUT']= '0900'+ merge_table.loc[i]['INOUT']
                 if merge_table.loc[i]['DAYOFF1_TIME'] != 'None':
                     if merge_table.loc[i]['PLAN2'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]:
-                        merge_table.loc[i]['PLAN2'] = '0900'+ merge_table.loc[i]['DAYOFF1_TIME'][:4]
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['PLAN2'][:4]+ '~'+ merge_table.loc[i]['DAYOFF1_TIME'][:4]
                     if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
                         merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['DAYOFF1_TIME'][-4:] +'~'+ merge_table.loc[i]['PLAN2'][-4:] #모두 적용 필요
                 if merge_table.loc[i]['BUSI_TRIP1_TIME'] != 'None':
                     if merge_table.loc[i]['PLAN2'][-4:] == merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]:
-                        merge_table.loc[i]['PLAN2'] == '0900'+ merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]
+                        merge_table.loc[i]['PLAN2'] == merge_table.loc[i]['PLAN2'][:4]+ '~'+ merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]
+                    if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:] +'~'+ merge_table.loc[i]['PLAN2'][-4:] #모두 적용 필요
             elif merge_table.loc[i]['INOUT'][-1] == '~':
                 merge_table.loc[i]['INOUT'] += '1800'
                 if merge_table.loc[i]['DAYOFF1_TIME'] != 'None':
                     if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
                         merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['DAYOFF1_TIME'][-4:] + '1800'
+                    if merge_table.loc[i]['PLAN2'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['PLAN2'][:4] +'~'+ merge_table.loc[i]['DAYOFF1_TIME'][:4]#모두 적용 필요
                 if merge_table.loc[i]['BUSI_TRIP1_TIME'] != 'None':
                     if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]:
                         merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:] + '1800'
+                    if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]:
+                        merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['PLAN2'][:4] +'~'+ merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] #모두 적용 필요
+
             else:
-                
                 if merge_table.loc[i]['DAYOFF1_TIME'] != 'None':
                     if merge_table.loc[i]['PLAN2'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
                         merge_table.loc[i]['PLAN2'] = merge_table.loc[i]['DAYOFF1_TIME'][-4:] + merge_table.loc[i]['PLAN2'][-4:]
