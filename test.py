@@ -1,16 +1,6 @@
-from datetime import timedelta
-start='0900'
-end='2100'
+from datetime import timedelta, datetime
 
-delta_start=timedelta(
-    minutes=int(start[-2:]),
-    hours=int(start[:2])
-)
+now=datetime.now()
+that_moment=now-timedelta(days=1)
 
-delta_end=timedelta(
-    minutes=int(end[-2:]),
-    hours=int(end[:2])
-)
-
-print(str(delta_end-delta_start).zfill(8))
-    
+print(that_moment.strftime('%Y%m%d'))

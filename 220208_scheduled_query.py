@@ -3,6 +3,7 @@ import os
 import pymysql             # mariadb와 연동하는 패키지
 import pandas as pd
 from datetime import datetime
+from datetime import timedelta
 from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
 
 LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
@@ -13,6 +14,10 @@ OracleCursor = OracleConnect.cursor()  #오라클 sql문 쓰기 위한 커서
 conn=pymysql.connect(host=mysqlinfo['host'], user=mysqlinfo['user'], password=mysqlinfo['password'], 
                     db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
 cur=conn.cursor() #pymysql 커서
+
+days_offset=int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
+today=(datetime.now()-timedelta(days=days_offset)).strftime('%Y%m%d')
+print(today)
 
 oracleSql = f"""
 select NVL(A.trg_emp_id, 'NULL') AS EMP_ID, A.appr_ymd, NVL(NVL(B.ymd, C.ymd), 'NULL') AS YMD, NVL(NVL(B.sta_hm, C.sta_hm), 'NULL') AS STA_HM, 
@@ -26,8 +31,8 @@ left join(select ymd, attend_cd, sta_hm, end_hm, appl_id, del_yn
 from ehr2011060.tam5450) C
 on a.appl_id = c.appl_id
 where a.appl_stat_cd = '900' and (( (a.appl_type='1002' or a.appl_type='1004' or a.appl_type='1008' or a.appl_type='1010') 
-and NVL(B.ymd, C.ymd)=(SELECT TO_CHAR(SYSDATE-3, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)) 
-or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE-3, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL))
+and NVL(B.ymd, C.ymd)=(SELECT TO_CHAR(SYSDATE-{days_offset}, 'YYYYMMDD')AS YYYYMMDD FROM DUAL)) 
+or a.appl_type='1044' and substr(a.appl_txt,5,10)=(SELECT TO_CHAR(SYSDATE-{days_offset}, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL))
 """
 OracleCursor.execute(oracleSql)
 origin_table=pd.DataFrame()
@@ -36,8 +41,6 @@ for line in OracleCursor:
     data={'EMP_ID':line[0], 'APPR_YMD':line[1], 'YMD':line[2], 'STA_HM':line[3], 'END_HM':line[4], 'TYPE':line[5], 
         'APPL_ID':line[6], 'DEL_YN':line[7], 'BF_APPL_ID':line[8], 'APPL_TXT':line[9], 'REWARD_TYPE':line[10]}
     origin_table=origin_table.append(data,ignore_index=True)
-
-today=origin_table.at[1, 'YMD']
 
 origin_table = origin_table.drop(index=origin_table.loc[origin_table.DEL_YN == 'Y'].index)
 #2. DEL_YN이 Y인 행 삭제
@@ -196,7 +199,7 @@ for i in range(len(emp_id)):
         tmp_end = line[0]
         inout = inout + tmp_end
     merge_table.loc[i]['INOUT'] = inout
-print(merge_table.loc[63]['EMP_ID'],merge_table.loc[63]['INOUT'],merge_table.loc[63]['PLAN2'])
+# print(merge_table.loc[63]['EMP_ID'],merge_table.loc[63]['INOUT'],merge_table.loc[63]['PLAN2'])
     # 확정시간 만들기(0900~1800 근무자) 시차출퇴근자, 휴일 등 추가 적용 필요
 for i in range(len(merge_table)):
     if merge_table.loc[i]['WORK_TYPE']=='None': # NULL 값 제외
@@ -657,8 +660,9 @@ for i in range(len(merge_table)):
                         fixtime += merge_table.loc[i]['INOUT'][-4:]
                 merge_table.loc[i]['FIX1'] = fixtime
 
+
 #초과근무 시간 계산
-from datetime import timedelta
+
 for i in range(len(merge_table)):
     cal_overtime=0
     if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9:#FIX1이 None이거나 시작또는 끝이 비어있을때
@@ -682,29 +686,37 @@ for i in range(len(merge_table)):
     
     merge_table.loc[i]['CAL_OVERTIME']=cal_overtime
 
-#급량비 계산
+#급량비 계산(임신기근로, 육아기근로 미반영)
 for i in range(len(merge_table)):
-    merge_table[i]['CAL_MEAL']='FALSE'
+    merge_table.loc[i]['CAL_MEAL']='FALSE'
     work_time_range=''#근무유형 시간 범위
     
-    if int(merge_table[i]['CAL_OVERTIME'])<100: # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
+    if merge_table.loc[i]['CAL_OVERTIME']<'100': # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
         continue
     
-    if merge_table[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9: #잘못된 정보 들어가있으면 급량비 산정 FALSE
+    if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9: #잘못된 정보 들어가있으면 급량비 산정 FALSE
         continue
     
-    if merge_table[i]['WORK_TYPE']=='0060': #주말근무일 때 
-        if int(merge_table[i]['CAL_OVERTIME'])>=200: #2시간 이상이어야 TRUE
-            merge_table[i]['CAL_MEAL']='TRUE'
+    if merge_table.loc[i]['WORK_TYPE'] in ['0290','0280','0300']: # 재택근무이면 초과근무 0시간이므로 급량비 산정 FALSE
+        continue
+    
+    if merge_table.loc[i]['WORK_TYPE']=='0060': #주말근무일 때 
+        if merge_table.loc[i]['CAL_OVERTIME']>='200': #2시간 이상이어야 TRUE
+            merge_table.loc[i]['CAL_MEAL']='TRUE'
 
-    elif merge_table[i]['SHIFT_CD']=='0030': # 09~18 근무자일 때
+    elif merge_table.loc[i]['SHIFT_CD']=='0030': # 09~18 근무자일 때
         # 시작시간이 08시 이하거나 끝시간이 19시 이후이면
-        if int(merge_table[i]['FIX1'][:4])<=800 or int(merge_table[i]['FIX1'][-4:])<=800: 
-            merge_table[i]['CAL_MEAL']='TRUE'
+        if merge_table.loc[i]['FIX1'][:4]<='800' or merge_table.loc[i]['FIX1'][-4:]>='1900': 
+            merge_table.loc[i]['CAL_MEAL']='TRUE'
             
-    elif merge_table[i]['SHIFT_CD']=='0040': # 10~19 근무자일 때
-        if int(merge_table[i]['FIX1'][:4])<=800 or int(merge_table[i]['FIX1'][-4:])<=800:
-            pass
+    elif merge_table.loc[i]['SHIFT_CD']=='0040': # 10~19 근무자일 때
+        # 시작시간이 08시 이하거나 끝시간이 20시 이후이면
+        if merge_table.loc[i]['FIX1'][:4]<='800' or merge_table.loc[i]['FIX1'][-4:]>='2000':
+            merge_table.loc[i]['CAL_MEAL']='TRUE'
+    elif merge_table.loc[i]['SHIFT_CD']=='0020': # 08~17 근무자일 때
+        # 시작시간이 07시 이하거나 끝시간이 19시 이후이면
+        if merge_table.loc[i]['FIX1'][:4]<='700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
+            merge_table.loc[i]['CAL_MEAL']='TRUE'
             
 parameters='%s,'*41
 
