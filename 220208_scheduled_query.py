@@ -691,7 +691,7 @@ for i in range(len(merge_table)):
     merge_table.loc[i]['CAL_MEAL']='FALSE'
     work_time_range=''#근무유형 시간 범위
     
-    if merge_table.loc[i]['CAL_OVERTIME']<'100': # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
+    if merge_table.loc[i]['CAL_OVERTIME']<'0100': # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
         continue
     
     if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9: #잘못된 정보 들어가있으면 급량비 산정 FALSE
@@ -701,28 +701,28 @@ for i in range(len(merge_table)):
         continue
     
     if merge_table.loc[i]['WORK_TYPE']=='0060': #주말근무일 때 
-        if merge_table.loc[i]['CAL_OVERTIME']>='200': #2시간 이상이어야 TRUE
+        if merge_table.loc[i]['CAL_OVERTIME']>='0200': #2시간 이상이어야 TRUE
             merge_table.loc[i]['CAL_MEAL']='TRUE'
 
     elif merge_table.loc[i]['SHIFT_CD']=='0030': # 09~18 근무자일 때
         # 시작시간이 08시 이하거나 끝시간이 19시 이후이면
-        if merge_table.loc[i]['EMP_ID']=='20150026':
-            print(merge_table.loc[i]['FIX1'])
         
-        if merge_table.loc[i]['FIX1'][:4]<='800' or merge_table.loc[i]['FIX1'][-4:]>='1900': 
+        if merge_table.loc[i]['FIX1'][:4]<='0800' or merge_table.loc[i]['FIX1'][-4:]>='1900': 
             merge_table.loc[i]['CAL_MEAL']='TRUE'
             
     elif merge_table.loc[i]['SHIFT_CD']=='0040': # 10~19 근무자일 때
         # 시작시간이 08시 이하거나 끝시간이 20시 이후이면
-        if merge_table.loc[i]['FIX1'][:4]<='800' or merge_table.loc[i]['FIX1'][-4:]>='2000':
+        if merge_table.loc[i]['FIX1'][:4]<='0800' or merge_table.loc[i]['FIX1'][-4:]>='2000':
             merge_table.loc[i]['CAL_MEAL']='TRUE'
     elif merge_table.loc[i]['SHIFT_CD']=='0020': # 08~17 근무자일 때
         # 시작시간이 07시 이하거나 끝시간이 19시 이후이면
-        if merge_table.loc[i]['FIX1'][:4]<='700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
+        if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
             merge_table.loc[i]['CAL_MEAL']='TRUE'
             
 parameters='%s,'*41
 
+
+# print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
 # print(merge_table.head(40))
 
 for i in range(len(merge_table)):
