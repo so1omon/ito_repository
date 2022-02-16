@@ -343,7 +343,7 @@ def fix_all(_str, _end):
         else:
             fixtime = fixtime + _end
     elif merge_table.loc[i]['PLAN1'][-4:] == _end: #퇴근이전 시간외 미신청
-        if inout_end_cal >= int(_end)*60:
+        if merge_table.loc[i]['INOUT'][-4:] > merge_table.loc[i]['PLAN1'][-4:]:
             fixtime +=_end
         else:
             fixtime += merge_table.loc[i]['INOUT'][-4:]
@@ -507,28 +507,30 @@ for i in range(len(merge_table)):
     if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]:
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
-<<<<<<< HEAD
         if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]:
-            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['INOUT'][4:]
+            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
     if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]:
         if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]:
             merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
     if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]:
         if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]:
-            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['INOUT'][4:]
+            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
     if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]:
+        if merge_table.loc[i]['INOUT'][-1]== '~':
+            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4]+ merge_table.loc[i]['PLAN1'][4:]
         if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]:
             merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
     if merge_table.loc[i]['PLAN1'] == merge_table.loc[i]['DAYOFF1_TIME']:
         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
     if merge_table.loc[i]['PLAN1'] == merge_table.loc[i]['BUSI_TRIP1_TIME']:
         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
-=======
-        # fix_start = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
-        pass
+    if merge_table.loc[i]['DAYOFF1_TIME'][-4:] == '1200' or merge_table.loc[i]['DAYOFF1_TIME'][:4] == '1300':
+        merge_table.loc[i]['FIX1'] = err
+    if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None':
+        merge_table.loc[i]['FIX1'] = err
+    if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None':
+        merge_table.loc[i]['FIX1'] = err
         
->>>>>>> refs/remotes/origin/master
-
 #초과근무 시간 계산
 for i in range(len(merge_table)):
     cal_overtime=0
