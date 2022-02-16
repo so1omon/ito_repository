@@ -58,19 +58,20 @@ origin_table.loc[origin_table.TIME =='NULL~NULL','TIME']='0000~0000'
 
 # pd.set_option('display.max_row', 2000) # 최대 출력 행 설정
 
-column=['YMD','EMP_ID','ORG_NM','SHIFT_CD','WORK_TYPE','PLAN1','PLAN2', 'INOUT', 'FIX1','FIX2','DAYOFF1_TIME','DAYOFF1_ID','DAYOFF2_TIME','DAYOFF2_ID','DAYOFF3_TIME','DAYOFF3_ID','DAYOFF4_TIME','DAYOFF4_ID',
+column=['YMD','EMP_ID','NAME','ORG_NM','SHIFT_CD','WORK_TYPE','PLAN1','PLAN2', 'INOUT', 'FIX1','FIX2','DAYOFF1_TIME','DAYOFF1_ID','DAYOFF2_TIME','DAYOFF2_ID','DAYOFF3_TIME','DAYOFF3_ID','DAYOFF4_TIME','DAYOFF4_ID',
 'OVER1_TIME','OVER1_ID','OVER2_TIME','OVER2_ID','OVER3_TIME','OVER3_ID','OVER4_TIME','OVER4_ID','BUSI_TRIP1_TIME','BUSI_TRIP1_ID',
 'BUSI_TRIP2_TIME','BUSI_TRIP2_ID','BUSI_TRIP3_TIME','BUSI_TRIP3_ID','BUSI_TRIP4_TIME','BUSI_TRIP4_ID',
 'HOME_ID','ETC_INFO','ETC_ID','REWARD_TIME','REWARD_ID','CAL_OVERTIME','CAL_MEAL']
 
-cur.execute('SELECT emp_id, org_nm FROM connect.hr_info')
+cur.execute('SELECT emp_id, emp_nm, org_nm FROM connect.hr_info')
 
 merge_table = pd.DataFrame(columns=column)
 
 for emp_id in cur:#사번정보 로드
     data={
         'EMP_ID': emp_id[0],
-        'ORG_NM': emp_id[1],
+        'NAME' : emp_id[1],
+        'ORG_NM': emp_id[2],
         'YMD': today
     }
     merge_table=merge_table.append(data, ignore_index=True)
@@ -408,6 +409,20 @@ for i in range(len(merge_table)):
                     inout += inout_out
                 merge_table.loc[i]['FIX1']= inout
 
+        elif merge_table.loc[i]['SHIFT_CD']=='0010': #시차출퇴근(8-17),시차출퇴근(8-17)_재택
+            pre_set('0700', '1600')
+            if merge_table.loc[i]['INOUT'] == '~':
+                plan_not_inout('0700', '1600')
+            elif merge_table.loc[i]['INOUT'][0] == '~':
+                plan_not_in()
+                fix_end('1600')
+            elif merge_table.loc[i]['INOUT'][-1] == '~':
+                plan_all_notout()
+                fix_start('0700')
+            else:
+                plan_all_notout()
+                fix_all('0700', '1600')
+        
         elif merge_table.loc[i]['SHIFT_CD']=='0020': #시차출퇴근(8-17),시차출퇴근(8-17)_재택
             pre_set('0800', '1700')
             if merge_table.loc[i]['INOUT'] == '~':
@@ -465,26 +480,31 @@ for i in range(len(merge_table)):
                 fix_all('1000','1700')
     # 예외처리 전부 =>확정시간 반영
     err = 'ERROR'
-    if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1']>'0800':
+    if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][:4]>'0800':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1']<'1700':
+    if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][-4:]<'1700':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1']>'1000':
+    if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][:4]>'1000':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1']<'1900':
+    if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][-4:]<'1900':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1']>'0800':
+    if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1'][:4]>'0800':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1']<'1500':
+    if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1'][-4:]<'1500':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1']>'1000':
+    if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1'][:4]>'1000':
         merge_table.loc[i]['FIX1'] = err
-    if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1']<'1700':
+    if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1'][-4:]<'1700':
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]:
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
+<<<<<<< HEAD
         # fix_start = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
+=======
+        fix_in = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
+        fix_out = merge_table.loc[i]['DAYOFF1_TIME'][:4]
+>>>>>>> 66f0f72e6f52c17e18a9bbd19d370ef33db41f4e
         pass
         
 
@@ -545,18 +565,22 @@ for i in range(len(merge_table)):
         if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
             merge_table.loc[i]['CAL_MEAL']='TRUE'
 
+<<<<<<< HEAD
 idx=merge_table[merge_table['SHIFT_CD']=='None'].index
 merge_table.drop(idx, inplace=True)
 merge_table=merge_table.reset_index(drop=True)
 print(merge_table)
 print(len(merge_table))
 parameters='%s,'*41
+=======
+parameters='%s,'*42
+>>>>>>> 66f0f72e6f52c17e18a9bbd19d370ef33db41f4e
 
 # print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
 # print(merge_table.head(40))
 
 for i in range(len(merge_table)):
-    sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 41개의 parameters
+    sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
     cur.execute(sql, list(merge_table.loc[i]))
 conn.commit()
 conn.close()
