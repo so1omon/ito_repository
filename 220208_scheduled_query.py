@@ -484,7 +484,8 @@ for i in range(len(merge_table)):
     if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]:
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
-        fix_start = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
+        # fix_start = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
+        pass
         
 
 #초과근무 시간 계산
@@ -544,6 +545,11 @@ for i in range(len(merge_table)):
         if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
             merge_table.loc[i]['CAL_MEAL']='TRUE'
 
+idx=merge_table[merge_table['SHIFT_CD']=='None'].index
+merge_table.drop(idx, inplace=True)
+merge_table=merge_table.reset_index(drop=True)
+print(merge_table)
+print(len(merge_table))
 parameters='%s,'*41
 
 # print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
