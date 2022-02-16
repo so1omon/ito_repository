@@ -499,12 +499,7 @@ for i in range(len(merge_table)):
     if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]:
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
-<<<<<<< HEAD
         # fix_start = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
-=======
-        fix_in = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
-        fix_out = merge_table.loc[i]['DAYOFF1_TIME'][:4]
->>>>>>> 66f0f72e6f52c17e18a9bbd19d370ef33db41f4e
         pass
         
 
@@ -565,16 +560,10 @@ for i in range(len(merge_table)):
         if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
             merge_table.loc[i]['CAL_MEAL']='TRUE'
 
-<<<<<<< HEAD
 idx=merge_table[merge_table['SHIFT_CD']=='None'].index
 merge_table.drop(idx, inplace=True)
 merge_table=merge_table.reset_index(drop=True)
-print(merge_table)
-print(len(merge_table))
-parameters='%s,'*41
-=======
 parameters='%s,'*42
->>>>>>> 66f0f72e6f52c17e18a9bbd19d370ef33db41f4e
 
 # print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
 # print(merge_table.head(40))
