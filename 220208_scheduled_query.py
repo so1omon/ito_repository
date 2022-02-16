@@ -283,24 +283,24 @@ def fix_end(end): # 퇴근버튼만 찍었을 때 확정시간
             fixtime += merge_table.loc[i]['INOUT'][-4:]
     merge_table.loc[i]['FIX1'] = '~'+ fixtime
 
-def fix_str(str): # 출근버튼만 찍었을 때 확정시간
+def fix_str(_str): # 출근버튼만 찍었을 때 확정시간
     fixtime = ''
     inout_start= merge_table.loc[i]['INOUT'][:4]
     inout_start_hour = inout_start[:2]
     inout_start_min = inout_start[-2:]
     inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
-    if merge_table.loc[i]['PLAN1'][:4] < str: #출근이전 시간외 신청
+    if merge_table.loc[i]['PLAN1'][:4] < _str: #출근이전 시간외 신청
         if int(inout_start_hour)*60-30 >= inout_start_cal: #30분 빼고 비교
             fixtime = inout_start
             if merge_table.loc[i]['PLAN1'][:4] > inout_start:
                 fixtime = merge_table.loc[i]['PLAN1'][:4]
         elif int(inout_start_hour)*60-30 <= inout_start_cal <= int(inout_start_hour)*60:
-            fixtime = str
+            fixtime = _str
         else:
             fixtime= merge_table.loc[i]['INOUT'][:4]
-    elif merge_table.loc[i]['PLAN1'][:4] == str: #출근이전 시간외 미신청
-        if merge_table.loc[i]['INOUT'][:4] < str:
-            fixtime = str
+    elif merge_table.loc[i]['PLAN1'][:4] == _str: #출근이전 시간외 미신청
+        if merge_table.loc[i]['INOUT'][:4] < _str:
+            fixtime = _str
         else:
             fixtime = merge_table.loc[i]['INOUT'][:4]
     fixtime = fixtime + '~'
@@ -486,6 +486,7 @@ for i in range(len(merge_table)):
     if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]:
         fix_str = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
         
+
 
 #초과근무 시간 계산
 for i in range(len(merge_table)):
