@@ -16,8 +16,10 @@ conn=pymysql.connect(host=mysqlinfo['host'], user=mysqlinfo['user'], password=my
 cur=conn.cursor() #pymysql 커서
 
 days_offset=int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
-today=(datetime.now()-timedelta(days=days_offset)).strftime('%Y%m%d')
-print(today)
+now=datetime.now()
+that_moment=(now-timedelta(days=days_offset)).strftime('%Y%m%d')
+
+print(that_moment)
 
 oracleSql = f"""
 select NVL(A.trg_emp_id, 'NULL') AS EMP_ID, A.appr_ymd, NVL(NVL(B.ymd, C.ymd), 'NULL') AS YMD, NVL(NVL(B.sta_hm, C.sta_hm), 'NULL') AS STA_HM, 
@@ -72,7 +74,7 @@ for emp_id in cur:#사번정보 로드
         'EMP_ID': emp_id[0],
         'NAME' : emp_id[1],
         'ORG_NM': emp_id[2],
-        'YMD': today
+        'YMD': that_moment
     }
     merge_table=merge_table.append(data, ignore_index=True)
 
@@ -191,10 +193,10 @@ for i in range(len(merge_table)):
 for i in range(len(emp_id)):
     inout = ''
     tmp_end = ''
-    cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND (DATE_FORMAT(CURDATE()-{days_offset}, '%Y%m%d')) = T.WORK_DATE AND T.WORK_CD = 'IN' ORDER BY T.WORK_INFO_CLOCK LIMIT 1")
+    cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND {that_moment}= T.WORK_DATE AND T.WORK_CD = 'IN' ORDER BY T.WORK_INFO_CLOCK LIMIT 1") # (DATE_FORMAT(CURDATE()-{days_offset}, '%Y%m%d'))
     for line in cur:
         inout = line[0]
-    cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND (DATE_FORMAT(CURDATE()-{days_offset}, '%Y%m%d')) = T.WORK_DATE AND T.WORK_CD = 'OUT' ORDER BY T.WORK_INFO_CLOCK DESC LIMIT 1")
+    cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND {that_moment}= T.WORK_DATE AND T.WORK_CD = 'OUT' ORDER BY T.WORK_INFO_CLOCK DESC LIMIT 1") # (DATE_FORMAT(CURDATE()-{days_offset}, '%Y%m%d'))
     inout = inout + '~'
     for line in cur:
         tmp_end = line[0]
@@ -492,6 +494,10 @@ for i in range(len(merge_table)):
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][-4:]<'1700':
         merge_table.loc[i]['FIX1'] = err
+    if merge_table.loc[i]['SHIFT_CD']=='0030' and merge_table.loc[i]['PLAN1'][:4]>'0900':
+        merge_table.loc[i]['FIX1'] = err
+    if merge_table.loc[i]['SHIFT_CD']=='0030' and merge_table.loc[i]['PLAN1'][-4:]<'1800':
+        merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][:4]>'1000':
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][-4:]<'1900':
@@ -530,11 +536,15 @@ for i in range(len(merge_table)):
         merge_table.loc[i]['FIX1'] = err
     if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None':
         merge_table.loc[i]['FIX1'] = err
+    if len(merge_table.loc[i]['FIX1']) == 9 and 'None' in merge_table.loc[i]['FIX1']:
+        merge_table.loc[i]['FIX1'] = err
+    if len(merge_table.loc[i]['FIX1']) == 9 and 'ERRO' in merge_table.loc[i]['FIX1']:
+        merge_table.loc[i]['FIX1'] = err
         
 #초과근무 시간 계산
 for i in range(len(merge_table)):
     cal_overtime=0
-    if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9:#FIX1이 None이거나 시작또는 끝이 비어있을때
+    if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' :#FIX1이 None이거나 시작또는 끝이 비어있을때
         cal_overtime='0000'
     else: #정상적인 경우
         # cal_overtime=int(merge_table.loc[i]['FIX1'][-4:])-int(merge_table.loc[i]['FIX1'][:4])-900

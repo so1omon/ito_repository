@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
 
-now=datetime.now()
-that_moment=now-timedelta(days=1)
+days_offset=int(input())
+
+
 
 print(that_moment.strftime('%Y%m%d'))
