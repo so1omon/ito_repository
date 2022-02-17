@@ -562,6 +562,8 @@ for i in range(len(merge_table)):
             cal_overtime='0000'
         elif int(cal_overtime)>=400: # 4시간 초과할때
             cal_overtime='0400'
+        elif int(cal_overtime)<30:
+            cal_overtime='0000'
     
     merge_table.loc[i]['CAL_OVERTIME']=cal_overtime
 
