@@ -491,25 +491,49 @@ try:
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0010' and merge_table.loc[i]['PLAN1'][-4:]<'1600':
             merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0010' and '0630'<merge_table.loc[i]['PLAN1'][:4]<'0700':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0010' and '1600'<merge_table.loc[i]['PLAN1'][:4]<'1630':
+            merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][:4]>'0800':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][-4:]<'1700':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0020' and '0730'<merge_table.loc[i]['PLAN1'][:4]<'0800':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0020' and '1700'<merge_table.loc[i]['PLAN1'][:4]<'1730':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0030' and merge_table.loc[i]['PLAN1'][:4]>'0900':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0030' and merge_table.loc[i]['PLAN1'][-4:]<'1800':
             merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0030' and '0830'<merge_table.loc[i]['PLAN1'][:4]<'0900':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0030' and '1800'<merge_table.loc[i]['PLAN1'][:4]<'1830':
+            merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][:4]>'1000':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][-4:]<'1900':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0040' and '0930'<merge_table.loc[i]['PLAN1'][:4]<'1000':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0040' and '1900'<merge_table.loc[i]['PLAN1'][:4]<'1930':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1'][:4]>'0800':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1'][-4:]<'1500':
             merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0440' and '0730'<merge_table.loc[i]['PLAN1'][:4]<'0800':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0440' and '1500'<merge_table.loc[i]['PLAN1'][:4]<'1530':
+            merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1'][:4]>'1000':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1'][-4:]<'1700':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0170' and '0930'<merge_table.loc[i]['PLAN1'][:4]<'1000':
+            merge_table.loc[i]['FIX1'] = err
+        if merge_table.loc[i]['SHIFT_CD']=='0170' and '1700'<merge_table.loc[i]['PLAN1'][:4]<'1730':
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]:
             merge_table.loc[i]['FIX1'] = err
