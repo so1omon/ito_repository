@@ -568,7 +568,7 @@ while 1:
                 merge_table.loc[i]['FIX1'] = err
             if len(merge_table.loc[i]['FIX1']) == 9 and 'ERRO' in merge_table.loc[i]['FIX1']: # 시간에 erro 들어갈때
                 merge_table.loc[i]['FIX1'] = err
-        int('ssss')
+                
         #초과근무 시간 계산
         for i in range(len(merge_table)):
             cal_overtime=0
