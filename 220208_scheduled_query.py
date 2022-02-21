@@ -618,14 +618,24 @@ try:
                 minutes=int(merge_table.loc[i]['FIX1'][-2:]),
                 hours=int(merge_table.loc[i]['FIX1'][-4:-2]),
             )
-            cal_overtime=str(cal_overtime_end-cal_overtime_start-timedelta(hours=9)).zfill(8)
-            cal_overtime=cal_overtime[:2]+cal_overtime[3:5]
-            if cal_overtime[0]=='-': #음수일때
-                cal_overtime='0000'
-            elif int(cal_overtime)>=400: # 4시간 초과할때
-                cal_overtime='0400'
-            elif int(cal_overtime)<30:
-                cal_overtime='0000'
+            if merge_table.loc[i]['WORK_TYPE']=='0060':
+                cal_overtime=str(cal_overtime_end-cal_overtime_start).zfill(8)
+                cal_overtime=cal_overtime[:2]+cal_overtime[3:5]
+                if cal_overtime[0]=='-': #음수일때
+                    cal_overtime='0000'
+                elif int(cal_overtime)>=400: # 4시간 초과할때
+                    cal_overtime='0400'
+                elif int(cal_overtime)<200:
+                    cal_overtime='0000'
+            else :
+                cal_overtime=str(cal_overtime_end-cal_overtime_start-timedelta(hours=9)).zfill(8)
+                cal_overtime=cal_overtime[:2]+cal_overtime[3:5]
+                if cal_overtime[0]=='-': #음수일때
+                    cal_overtime='0000'
+                elif int(cal_overtime)>=400: # 4시간 초과할때
+                    cal_overtime='0400'
+                elif int(cal_overtime)<30:
+                    cal_overtime='0000'
         
         merge_table.loc[i]['CAL_OVERTIME']=cal_overtime
 
