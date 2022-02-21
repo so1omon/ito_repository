@@ -484,110 +484,6 @@ try:
                     plan_all_notout()
                     fix_all('1000','1900')
 
-<<<<<<< HEAD
-                elif merge_table.loc[i]['SHIFT_CD']=='0170': #육아기 근로단축(10-17), 육아기 근로단축(10-17)_재택
-                    pre_set('1000','1700')
-                    if merge_table.loc[i]['INOUT'] == '~':
-                        plan_not_inout('1000','1700')
-                    elif merge_table.loc[i]['INOUT'][0] == '~':
-                        plan_not_in()
-                        fix_end('1700')
-                    elif merge_table.loc[i]['INOUT'][-1] == '~':
-                        plan_all_notout()
-                        fix_start('1000')
-                    else:
-                        plan_all_notout()
-                        fix_all('1000','1700')
-            # 예외처리 전부 =>확정시간 반영
-            err = 'ERROR'
-            fix_in = merge_table.loc[i]['DAYOFF1_TIME'][-4:]
-            fix_in2 = merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]
-            fix_out = merge_table.loc[i]['DAYOFF1_TIME'][:4]
-            fix_out2 = merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]
-            if merge_table.loc[i]['SHIFT_CD']=='0010' and merge_table.loc[i]['PLAN1'][:4]>'0700': #계획시간 잘못 반영 - 출근 계획 
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0010' and merge_table.loc[i]['PLAN1'][-4:]<'1600': #계획시간 잘못 반영 - 퇴근 계획
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0010' and '0630'<merge_table.loc[i]['PLAN1'][:4]<'0700': #계획시간 잘못 반영- 30분 미만
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0010' and '1600'<merge_table.loc[i]['PLAN1'][:4]<'1630': #계획시간 잘못 반영- 30분 미만
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][:4]>'0800': 
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0020' and merge_table.loc[i]['PLAN1'][-4:]<'1700': 
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0020' and '0730'<merge_table.loc[i]['PLAN1'][:4]<'0800': 
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0020' and '1700'<merge_table.loc[i]['PLAN1'][:4]<'1730': 
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0030' and merge_table.loc[i]['PLAN1'][:4]>'0900': 
-                merge_table.loc[i]['FIX1'] = err 
-            if merge_table.loc[i]['SHIFT_CD']=='0030' and merge_table.loc[i]['PLAN1'][-4:]<'1800': 
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0030' and '0830'<merge_table.loc[i]['PLAN1'][:4]<'0900':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0030' and '1800'<merge_table.loc[i]['PLAN1'][:4]<'1830':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][:4]>'1000':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0040' and merge_table.loc[i]['PLAN1'][-4:]<'1900':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0040' and '0930'<merge_table.loc[i]['PLAN1'][:4]<'1000':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0040' and '1900'<merge_table.loc[i]['PLAN1'][:4]<'1930':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1'][:4]>'0800':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0440' and merge_table.loc[i]['PLAN1'][-4:]<'1500':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0440' and '0730'<merge_table.loc[i]['PLAN1'][:4]<'0800':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0440' and '1500'<merge_table.loc[i]['PLAN1'][:4]<'1530':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1'][:4]>'1000':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0170' and merge_table.loc[i]['PLAN1'][-4:]<'1700':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0170' and '0930'<merge_table.loc[i]['PLAN1'][:4]<'1000':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['SHIFT_CD']=='0170' and '1700'<merge_table.loc[i]['PLAN1'][:4]<'1730':
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]: # 계획시간 잘못 반영 - 출퇴근 계획 같거나 반대일 경우
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]: # 출근시간 연차 포함일때
-                if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 시간안에 온 경우
-                    merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
-            if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 퇴근시간 연차 포함일때
-                if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 시간안에 온 경우
-                    merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
-            if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]: # 출근시간 출장 포함일때
-                if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 시간안에 온 경우
-                    merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
-            if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 퇴근시간 출장 포함일때
-                if merge_table.loc[i]['INOUT'][-1]== '~': # 퇴근 안 찍고 가신경우
-                    merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4]+ merge_table.loc[i]['PLAN1'][4:]
-                if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 시간안에 온 경우
-                    merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
-            if merge_table.loc[i]['PLAN1'] == merge_table.loc[i]['DAYOFF1_TIME']: # 종일 연차
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
-            if merge_table.loc[i]['PLAN1'] == merge_table.loc[i]['BUSI_TRIP1_TIME']: # 종일 출장
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
-            if merge_table.loc[i]['DAYOFF1_TIME'][-4:] == '1200' or merge_table.loc[i]['DAYOFF1_TIME'][:4] == '1300': # 점심시간 제외
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None': # 연차 2번 쓴 경우
-                merge_table.loc[i]['FIX1'] = err
-            if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None': # 출장 2번 쓴 경우
-                merge_table.loc[i]['FIX1'] = err
-            if len(merge_table.loc[i]['FIX1']) == 9 and 'None' in merge_table.loc[i]['FIX1']: # 시간에 none 들어갈때
-                merge_table.loc[i]['FIX1'] = err
-            if len(merge_table.loc[i]['FIX1']) == 9 and 'ERRO' in merge_table.loc[i]['FIX1']: # 시간에 erro 들어갈때
-                merge_table.loc[i]['FIX1'] = err
-                
-        #초과근무 시간 계산
-        for i in range(len(merge_table)):
-            cal_overtime=0
-            if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' :#FIX1이 None이거나 시작또는 끝이 비어있을때
-=======
             elif merge_table.loc[i]['SHIFT_CD']=='0440': #임신기 근로단축(8-15), 임신기 근로단축(8-15)_재택
                 pre_set('0800','1500')
                 if merge_table.loc[i]['INOUT'] == '~':
@@ -693,7 +589,7 @@ try:
             merge_table.loc[i]['FIX1'] = err
         if  merge_table.loc[i]['ETC_ID'] != 'None': # 기타휴가
             merge_table.loc[i]['FIX1'] == '기타휴가'
-        if  merge_table.loc[i]['REWARD_ID'] == '400':
+        if  merge_table.loc[i]['REWARD_ID'] == '400': # 주말근무 중 대휴처리
             merge_table.loc[i]['FIX1'] == '대휴'
         if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None': # 연차 2번 쓴 경우
             merge_table.loc[i]['FIX1'] = err
@@ -725,7 +621,6 @@ try:
             cal_overtime=str(cal_overtime_end-cal_overtime_start-timedelta(hours=9)).zfill(8)
             cal_overtime=cal_overtime[:2]+cal_overtime[3:5]
             if cal_overtime[0]=='-': #음수일때
->>>>>>> aba88a347d13c9314d8e4b5ecd5aeccd5202369d
                 cal_overtime='0000'
             elif int(cal_overtime)>=400: # 4시간 초과할때
                 cal_overtime='0400'
