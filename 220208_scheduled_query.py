@@ -177,14 +177,14 @@ try:
         # 초과근무 적용하여 계획시간 만들기
     for i in range(len(merge_table)):
         overtime = ''   
-        if merge_table.loc[i]['OVER1_TIME'] != 'None':
+        if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
             over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
-            if over_start < std_start:
+            if over_start < std_start:    #기존시간보다 작을때-> 초과근무 신청
                 overtime = over_start
             else:
                 overtime = std_start
             overtime = overtime + '~'
-            if over_end > std_end:
+            if over_end > std_end:   # 기존시간보다 클때-> 초과근무 신청
                 overtime = overtime + over_end
             else:
                 overtime = overtime + std_end   
@@ -196,11 +196,11 @@ try:
         inout = ''
         tmp_end = ''
         cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND {that_moment}= T.WORK_DATE AND T.WORK_CD = 'IN' ORDER BY T.WORK_INFO_CLOCK LIMIT 1") 
-        for line in cur:
+        for line in cur:   # 들어올때 시간 삽입
             inout = line[0]
         cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND {that_moment}= T.WORK_DATE AND T.WORK_CD = 'OUT' ORDER BY T.WORK_INFO_CLOCK DESC LIMIT 1") 
         inout = inout + '~'
-        for line in cur:
+        for line in cur:   # 나갈때 시간 삽입
             tmp_end = line[0]
             inout = inout + tmp_end
         merge_table.loc[i]['INOUT'] = inout
@@ -360,6 +360,7 @@ try:
         elif merge_table.loc[i]['WORK_TYPE']=='0060': # 휴일 근무 계산
             if merge_table.loc[i]['REWARD_ID'] == '100':
                 merge_table.loc[i]['PLAN1'] =  merge_table.loc[i]['REWARD_TIME']
+                merge_table.loc[i]['PLAN2'] =  merge_table.loc[i]['REWARD_TIME']
                 hol_str = merge_table.loc[i]['PLAN1'][:4]
                 hol_end = merge_table.loc[i]['PLAN1'][-4:]
                 if merge_table.loc[i]['INOUT'] == '~':
@@ -386,6 +387,7 @@ try:
                 continue
             elif merge_table.loc[i]['REWARD_ID'] == '400':
                 merge_table.loc[i]['PLAN1'] =  merge_table.loc[i]['REWARD_TIME']
+                merge_table.loc[i]['PLAN2'] =  merge_table.loc[i]['REWARD_TIME']
                 continue
             else:
                 continue
@@ -588,9 +590,9 @@ try:
         if merge_table.loc[i]['DAYOFF1_TIME'][-4:] == '1200' or merge_table.loc[i]['DAYOFF1_TIME'][:4] == '1300': # 점심시간 제외
             merge_table.loc[i]['FIX1'] = err
         if  merge_table.loc[i]['ETC_ID'] != 'None': # 기타휴가
-            merge_table.loc[i]['FIX1'] == '기타휴가'
+            merge_table.loc[i]['FIX1'] = '기타휴가'
         if  merge_table.loc[i]['REWARD_ID'] == '400': # 주말근무 중 대휴처리
-            merge_table.loc[i]['FIX1'] == '대휴'
+            merge_table.loc[i]['FIX1'] = '대휴'
         if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None': # 연차 2번 쓴 경우
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None': # 출장 2번 쓴 경우
@@ -606,7 +608,7 @@ try:
     # 주말 초과근무 계산 로직 추가할것 - 조권호
     for i in range(len(merge_table)):
         cal_overtime=0
-        if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' :#FIX1이 None이거나 시작또는 끝이 비어있을때
+        if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' or merge_table.loc[i]['FIX1'] == '대휴' or merge_table.loc[i]['FIX1'] == '기타휴가':#FIX1이 None이거나 시작또는 끝이 비어있을때
             cal_overtime='0000'
         else: #정상적인 경우
             # cal_overtime=int(merge_table.loc[i]['FIX1'][-4:])-int(merge_table.loc[i]['FIX1'][:4])-900
