@@ -608,7 +608,8 @@ try:
     # 주말 초과근무 계산 로직 추가할것 - 조권호
     for i in range(len(merge_table)):
         cal_overtime=0
-        if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' or merge_table.loc[i]['FIX1'] == '대휴' or merge_table.loc[i]['FIX1'] == '기타휴가':#FIX1이 None이거나 시작또는 끝이 비어있을때
+        if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' or merge_table.loc[i]['FIX1'] == '대휴' or merge_table.loc[i]['FIX1'] == '기타휴가':
+            #FIX1이 None이거나 시작또는 끝이 비어있을때 (추후에 로직 개선)
             cal_overtime='0000'
         else: #정상적인 경우
             # cal_overtime=int(merge_table.loc[i]['FIX1'][-4:])-int(merge_table.loc[i]['FIX1'][:4])-900
