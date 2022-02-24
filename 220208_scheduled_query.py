@@ -177,19 +177,90 @@ try:
         # 초과근무 적용하여 계획시간 만들기
     for i in range(len(merge_table)):
         overtime = ''   
-        if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
-            over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
-            if over_start < std_start:    #기존시간보다 작을때-> 초과근무 신청
-                overtime = over_start
-            else:
-                overtime = std_start
-            overtime = overtime + '~'
-            if over_end > std_end:   # 기존시간보다 클때-> 초과근무 신청
-                overtime = overtime + over_end
-            else:
-                overtime = overtime + std_end   
-            merge_table.loc[i]['PLAN1'] = overtime
-            merge_table.loc[i]['PLAN2'] = overtime
+        if merge_table.loc[i]['SHIFT_CD'] == '0010':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '0700':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '0700'
+                overtime = overtime + '~'
+                if over_end > '1600':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1600'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0020':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '0800':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '0800'
+                overtime = overtime + '~'
+                if over_end > '1700':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1700'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0040':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '1000':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '1000'
+                overtime = overtime + '~'
+                if over_end > '1900':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1900'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0440':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '0800':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '0800'
+                overtime = overtime + '~'
+                if over_end > '1500':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1500'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0170':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '1000':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '1000'
+                overtime = overtime + '~'
+                if over_end > '1700':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1700'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        else:
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < std_start:    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = std_start
+                overtime = overtime + '~'
+                if over_end > std_end:   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + std_end   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
 
         # 기록기 시간 만들기
     for i in range(len(emp_id)):
@@ -697,7 +768,7 @@ try:
     # print(merge_table.head(40))
 
     for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+        sql=f"INSERT INTO good.ehr_cal_test values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
         cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
