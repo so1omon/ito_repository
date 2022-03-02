@@ -177,19 +177,90 @@ try:
         # 초과근무 적용하여 계획시간 만들기
     for i in range(len(merge_table)):
         overtime = ''   
-        if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
-            over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
-            if over_start < std_start:    #기존시간보다 작을때-> 초과근무 신청
-                overtime = over_start
-            else:
-                overtime = std_start
-            overtime = overtime + '~'
-            if over_end > std_end:   # 기존시간보다 클때-> 초과근무 신청
-                overtime = overtime + over_end
-            else:
-                overtime = overtime + std_end   
-            merge_table.loc[i]['PLAN1'] = overtime
-            merge_table.loc[i]['PLAN2'] = overtime
+        if merge_table.loc[i]['SHIFT_CD'] == '0010':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '0700':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '0700'
+                overtime = overtime + '~'
+                if over_end > '1600':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1600'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0020':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '0800':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '0800'
+                overtime = overtime + '~'
+                if over_end > '1700':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1700'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0040':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '1000':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '1000'
+                overtime = overtime + '~'
+                if over_end > '1900':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1900'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0440':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '0800':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '0800'
+                overtime = overtime + '~'
+                if over_end > '1500':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1500'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        elif merge_table.loc[i]['SHIFT_CD'] == '0170':
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < '1000':    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = '1000'
+                overtime = overtime + '~'
+                if over_end > '1700':   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + '1700'   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
+        else:
+            if merge_table.loc[i]['OVER1_TIME'] != 'None':    #초과근무일때
+                over_start, over_end = merge_table.loc[i]['OVER1_TIME'].split('~')
+                if over_start < std_start:    #기존시간보다 작을때-> 초과근무 신청
+                    overtime = over_start
+                else:
+                    overtime = std_start
+                overtime = overtime + '~'
+                if over_end > std_end:   # 기존시간보다 클때-> 초과근무 신청
+                    overtime = overtime + over_end
+                else:
+                    overtime = overtime + std_end   
+                merge_table.loc[i]['PLAN1'] = overtime
+                merge_table.loc[i]['PLAN2'] = overtime
 
         # 기록기 시간 만들기
     for i in range(len(emp_id)):
@@ -393,56 +464,71 @@ try:
                 continue
         else:
             if merge_table.loc[i]['SHIFT_CD']=='0030': #기본출퇴근자
-                pre_set('0900', '1800')
-                common('0900', '1800')
-                if merge_table.loc[i]['WORK_TYPE']=='0030': #기본출퇴근
-                    fixtime = ''
-                    inout_start, inout_end = merge_table.loc[i]['INOUT'].split('~')
-                    # 시간 비교를 위해 분단위로 고쳐주기
-                    inout_start_hour = inout_start[:2]
-                    inout_start_min = inout_start[-2:]
-                    inout_end_hour = inout_end[:2]
-                    inout_end_min = inout_end[-2:]
-                    inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
-                    inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
-                    #출근
-                    if merge_table.loc[i]['PLAN1'][:4] < '0900': #출근이전 시간외 신청
-                        if 510 >= inout_start_cal: #30분 빼고 비교
-                            fixtime = inout_start
-                            if merge_table.loc[i]['PLAN1'][:4] > inout_start:
-                                fixtime = merge_table.loc[i]['PLAN1'][:4]
+                if merge_table.loc[i]['REWARD_ID'] =='400':
+                    pre_set('0900', '1800')
+                    if merge_table.loc[i]['PLAN1'] != merge_table.loc[i]['REWARD_TIME']:
+                        merge_table.loc[i]['FIX1'] = 'ERROR'
+                    else:
+                        if merge_table.loc[i]['PLAN1'][:4]<merge_table.loc[i]['INOUT'][:4]:
+                            merge_table.loc[i]['FIX1'] = 'None'
+                        elif merge_table.loc[i]['PLAN1'][-4:]>merge_table.loc[i]['INOUT'][-4:]:
+                            merge_table.loc[i]['FIX1'] = 'None'
                         else:
-                            fixtime = '0900'
-                    elif merge_table.loc[i]['PLAN1'][:4] == '0900': #출근이전 시간외 미신청
-                        fixtime = '0900'
-                    fixtime = fixtime + '~'
-                    #퇴근
-                    if merge_table.loc[i]['PLAN1'][-4:] > '1800': #퇴근이후 시간외 신청
-                        if inout_end_cal >= 1110:
-                            if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
-                                fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
+                            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['REWARD_TIME']
+
+                else:
+                    pre_set('0900', '1800')
+                    common('0900', '1800')
+                    if merge_table.loc[i]['WORK_TYPE']=='0030': #기본출퇴근
+                        fixtime = ''
+                        inout_start, inout_end = merge_table.loc[i]['INOUT'].split('~')
+                        # 시간 비교를 위해 분단위로 고쳐주기
+                        inout_start_hour = inout_start[:2]
+                        inout_start_min = inout_start[-2:]
+                        inout_end_hour = inout_end[:2]
+                        inout_end_min = inout_end[-2:]
+                        inout_start_cal = int(inout_start_hour)*60 + int(inout_start_min)
+                        inout_end_cal = int(inout_end_hour)*60 + int(inout_end_min)
+
+                        #출근
+                        if merge_table.loc[i]['PLAN1'][:4] < '0900': #출근이전 시간외 신청
+                            if 510 >= inout_start_cal: #30분 빼고 비교
+                                fixtime = inout_start
+                                if merge_table.loc[i]['PLAN1'][:4] > inout_start:
+                                    fixtime = merge_table.loc[i]['PLAN1'][:4]
                             else:
-                                fixtime += inout_end                  
-                        else:
+                                fixtime = '0900'
+                        elif merge_table.loc[i]['PLAN1'][:4] == '0900': #출근이전 시간외 미신청
+                            fixtime = '0900'
+                        fixtime = fixtime + '~'
+
+                        #퇴근
+                        if merge_table.loc[i]['PLAN1'][-4:] > '1800': #퇴근이후 시간외 신청
+                            if inout_end_cal >= 1110:
+                                if merge_table.loc[i]['PLAN1'][-4:] < inout_end:
+                                    fixtime = fixtime + merge_table.loc[i]['PLAN1'][-4:]
+                                else:
+                                    fixtime += inout_end                  
+                            else:
+                                fixtime = fixtime + '1800'
+                        elif merge_table.loc[i]['PLAN1'][-4:] == '1800': #퇴근이전 시간외 미신청
                             fixtime = fixtime + '1800'
-                    elif merge_table.loc[i]['PLAN1'][-4:] == '1800': #퇴근이전 시간외 미신청
-                        fixtime = fixtime + '1800'
-                    merge_table.loc[i]['FIX1'] = fixtime
+                        merge_table.loc[i]['FIX1'] = fixtime
 
-                elif merge_table.loc[i]['WORK_TYPE']=='0290': #기본출퇴근자-재택
-                    inout=''
-                    inout_in = merge_table.loc[i]['INOUT'][:4]
-                    inout_out = merge_table.loc[i]['INOUT'][5:]
+                    elif merge_table.loc[i]['WORK_TYPE']=='0290': #기본출퇴근자-재택
+                        inout=''
+                        inout_in = merge_table.loc[i]['INOUT'][:4]
+                        inout_out = merge_table.loc[i]['INOUT'][5:]
 
-                    if inout_in<='0900':
-                        inout='0900~'
-                    else:
-                        inout=inout_in + '~'
-                    if inout_out >='1800':
-                        inout += '1800'
-                    else:
-                        inout += inout_out
-                    merge_table.loc[i]['FIX1']= inout
+                        if inout_in<='0900':
+                            inout='0900~'
+                        else:
+                            inout=inout_in + '~'
+                        if inout_out >='1800':
+                            inout += '1800'
+                        else:
+                            inout += inout_out
+                        merge_table.loc[i]['FIX1']= inout
 
             elif merge_table.loc[i]['SHIFT_CD']=='0010': #시차출퇴근(8-17),시차출퇴근(8-17)_재택
                 pre_set('0700', '1600')
@@ -591,8 +677,6 @@ try:
             merge_table.loc[i]['FIX1'] = err
         if  merge_table.loc[i]['ETC_ID'] != 'None': # 기타휴가
             merge_table.loc[i]['FIX1'] = '기타휴가'
-        if  merge_table.loc[i]['REWARD_ID'] == '400': # 주말근무 중 대휴처리
-            merge_table.loc[i]['FIX1'] = '대휴'
         if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None': # 연차 2번 쓴 경우
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None': # 출장 2번 쓴 경우
@@ -684,7 +768,7 @@ try:
     # print(merge_table.head(40))
 
     for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+        sql=f"INSERT INTO good.ehr_cal_test values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
         cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
