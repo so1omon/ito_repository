@@ -664,32 +664,35 @@ try:
             merge_table.loc[i]['FIX1'] = err
         if merge_table.loc[i]['PLAN1'][:4] >= merge_table.loc[i]['PLAN1'][-4:]: # 계획시간 잘못 반영 - 출퇴근 계획 같거나 반대일 경우
             merge_table.loc[i]['FIX1'] = err
-        if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]: # 출근시간 연차 포함일때
-            if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 시간안에 온 경우
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
-        if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 퇴근시간 연차 포함일때
-            if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 시간안에 온 경우
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
-        if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]: # 출근시간 출장 포함일때
-            if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 시간안에 온 경우
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
-        if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 퇴근시간 출장 포함일때
-            if merge_table.loc[i]['INOUT'][-1]== '~': # 퇴근 안 찍고 가신경우
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4]+ merge_table.loc[i]['PLAN1'][4:]
-            if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 시간안에 온 경우
-                merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
+        ### fix1과는 관련 없음, fix2 산정시 반영 필요
+        # if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['DAYOFF1_TIME'][:4]: # 출근시간 연차 포함일때
+        #     if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 시간안에 온 경우
+        #         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
+        # if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 퇴근시간 연차 포함일때
+        #     if merge_table.loc[i]['DAYOFF1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['DAYOFF1_TIME'][-4:]: # 시간안에 온 경우
+        #         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
+        # if merge_table.loc[i]['PLAN1'][:4] == merge_table.loc[i]['BUSI_TRIP1_TIME'][:4]: # 출근시간 출장 포함일때
+        #     if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][:4] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 시간안에 온 경우
+        #         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1'][:4] + merge_table.loc[i]['FIX1'][4:]
+        # if merge_table.loc[i]['PLAN1'][-4:] == merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 퇴근시간 출장 포함일때
+        #     if merge_table.loc[i]['INOUT'][-1]== '~': # 퇴근 안 찍고 가신경우
+        #         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4]+ merge_table.loc[i]['PLAN1'][4:]
+        #     if merge_table.loc[i]['BUSI_TRIP1_TIME'][:4] <= merge_table.loc[i]['INOUT'][-4:] <= merge_table.loc[i]['BUSI_TRIP1_TIME'][-4:]: # 시간안에 온 경우
+        #         merge_table.loc[i]['FIX1'] = merge_table.loc[i]['FIX1'][:4] + merge_table.loc[i]['PLAN1'][4:]
         if merge_table.loc[i]['PLAN1'] == merge_table.loc[i]['DAYOFF1_TIME']: # 종일 연차
             merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
         if merge_table.loc[i]['PLAN1'] == merge_table.loc[i]['BUSI_TRIP1_TIME']: # 종일 출장
             merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
-        if merge_table.loc[i]['DAYOFF1_TIME'][-4:] == '1200' or merge_table.loc[i]['DAYOFF1_TIME'][:4] == '1300': # 점심시간 제외
-            merge_table.loc[i]['FIX1'] = err
         if  merge_table.loc[i]['ETC_ID'] != 'None': # 기타휴가
-            merge_table.loc[i]['FIX1'] = '기타휴가'
-        if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None': # 연차 2번 쓴 경우
-            merge_table.loc[i]['FIX1'] = err
-        if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None': # 출장 2번 쓴 경우
-            merge_table.loc[i]['FIX1'] = err
+            merge_table.loc[i]['FIX1'] = merge_table.loc[i]['PLAN1']
+        ### fix1과는 관련 없음, fix2 산정시 반영 필요
+        # if merge_table.loc[i]['DAYOFF1_TIME'][-4:] == '1200' or merge_table.loc[i]['DAYOFF1_TIME'][:4] == '1300': # 점심시간 제외
+        #     merge_table.loc[i]['FIX1'] = err
+        ### fix1과는 관련 없음, fix2 산정시 반영 필요
+        # if merge_table.loc[i]['DAYOFF2_ID'] !='None' or merge_table.loc[i]['DAYOFF3_ID'] !='None' or merge_table.loc[i]['DAYOFF4_ID'] !='None': # 연차 2번 쓴 경우
+        #     merge_table.loc[i]['FIX1'] = err
+        # if merge_table.loc[i]['BUSI_TRIP2_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP3_ID'] !='None' or merge_table.loc[i]['BUSI_TRIP4_ID'] !='None': # 출장 2번 쓴 경우
+        #     merge_table.loc[i]['FIX1'] = err
         if len(merge_table.loc[i]['FIX1']) == 9 and 'None' in merge_table.loc[i]['FIX1']: # 시간에 none 들어갈때
             merge_table.loc[i]['FIX1'] = err
         if len(merge_table.loc[i]['FIX1']) == 9 and 'ERRO' in merge_table.loc[i]['FIX1']: # 시간에 erro 들어갈때
@@ -702,13 +705,13 @@ try:
     for i in range(len(merge_table)):
         cal_overtime=0
         if merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9 or merge_table.loc[i]['FIX1']== 'ERROR' or merge_table.loc[i]['FIX1'] == '대휴' or merge_table.loc[i]['FIX1'] == '기타휴가':
-            #FIX1이 None이거나 시작또는 끝이 비어있을때 (추후에 로직 개선)
+            #FIX1이 None이거나 시작 또는 끝이 비어있을때 (추후에 로직 개선)
             cal_overtime='0000'
         else: #정상적인 경우
             # cal_overtime=int(merge_table.loc[i]['FIX1'][-4:])-int(merge_table.loc[i]['FIX1'][:4])-900
             cal_overtime_start=timedelta(
                 minutes=int(merge_table.loc[i]['FIX1'][2:4]),
-                hours=int(merge_table.loc[i]['FIX1'][:2]),
+    햣            hours=int(merge_table.loc[i]['FIX1'][:2]),
             )
             cal_overtime_end=timedelta(
                 minutes=int(merge_table.loc[i]['FIX1'][-2:]),
@@ -824,7 +827,7 @@ try:
     # print(merge_table.head(40))
 
     for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+        sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
         cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
