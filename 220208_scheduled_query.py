@@ -837,4 +837,3 @@ finally:
     conn.commit()
     conn.close()
     OracleConnect.close()
-    test
