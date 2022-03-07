@@ -9,6 +9,7 @@ from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
 
 try: 
     LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
+    #크론탭으로 만들 때는 로케이션 변경할 것
     os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
     OracleConnect = cx_Oracle.connect(cxinfo['id'], cxinfo['pw'], cxinfo['host'])       # 오라클 연동 정보입력
     OracleCursor = OracleConnect.cursor()  #오라클 sql문 쓰기 위한 커서
@@ -17,7 +18,7 @@ try:
                         db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
     cur=conn.cursor() #pymysql 커서
 
-    days_offset=int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
+    days_offset=1 #int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
     now=datetime.now()
     that_moment=(now-timedelta(days=days_offset)).strftime('%Y%m%d')
 
@@ -104,6 +105,8 @@ try:
 
         insert_flag=0 # 값이 삽입되었다는 것을 알리는 플래그. 1이 되면 string list 탐색을 중지하고 다음 origin table튜플을 탐색
         
+        
+        #03/02 comment: switch문으로 연결
         if rows_origin['TYPE']=='1008': #초과근무
             if rows_origin['STA_HM']=='NULL': # 널값 들어 있을 때
                 continue
@@ -162,10 +165,12 @@ try:
     for line in OracleCursor:
         data={'EMP_ID':line[0], 'SHIFT_CD':line[1], 'WORK_TYPE':line[2]}
         insert_table=insert_table.append(data,ignore_index=True)
-        
+
     for idx in range(len(insert_table)): #근무유형 삽입
         rows_insert=insert_table.loc[idx] #insert table 행
         cond_emp_id=merge_table['EMP_ID']==rows_insert['EMP_ID']
+        
+        print(insert_table.loc[idx]['EMP_ID'])
         comp_index=merge_table.loc[cond_emp_id,'EMP_ID'].keys()[0] #merge table과 사번 일치하는 행 인덱스넘버
 
         merge_table.loc[comp_index]['SHIFT_CD']=insert_table.loc[idx]['SHIFT_CD']
@@ -269,11 +274,13 @@ try:
         cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND {that_moment}= T.WORK_DATE AND T.WORK_CD = 'IN' ORDER BY T.WORK_INFO_CLOCK LIMIT 1") 
         for line in cur:   # 들어올때 시간 삽입
             inout = line[0]
+            
         cur.execute(f"SELECT WORK_INFO_CLOCK FROM connect.at_att_inout AS T WHERE " + emp_id[i] + f" = T.EMP_CODE AND {that_moment}= T.WORK_DATE AND T.WORK_CD = 'OUT' ORDER BY T.WORK_INFO_CLOCK DESC LIMIT 1") 
         inout = inout + '~'
         for line in cur:   # 나갈때 시간 삽입
             tmp_end = line[0]
             inout = inout + tmp_end
+            
         merge_table.loc[i]['INOUT'] = inout
 
     def pre_set(_str, _end): # 초과근무 없을때, 전일연차, 전일 출장
@@ -519,7 +526,8 @@ try:
                         inout=''
                         inout_in = merge_table.loc[i]['INOUT'][:4]
                         inout_out = merge_table.loc[i]['INOUT'][5:]
-
+                        
+                        # 수정사항1 : 조건 바꿔주기(inout_in과 inout_out이 None일 때 그대로 반영되게 하기)
                         if inout_in<='0900':
                             inout='0900~'
                         else:
@@ -528,6 +536,7 @@ try:
                             inout += '1800'
                         else:
                             inout += inout_out
+                            
                         merge_table.loc[i]['FIX1']= inout
 
             elif merge_table.loc[i]['SHIFT_CD']=='0010': #시차출퇴근(8-17),시차출퇴근(8-17)_재택
@@ -758,6 +767,53 @@ try:
             # 시작시간이 07시 이하거나 끝시간이 19시 이후이면
             if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
                 merge_table.loc[i]['CAL_MEAL']='TRUE'
+        
+    except_case=['이주희','김윤성','진춘동','홍정수','김민혜','최영석','한아름','김진영','문종건',
+                 '김민경','소연수','김준모','민준홍','김성우','이병찬','이종득','한태화','김지안',
+                 '이태규','김상윤','정재균','박정준']    
+        
+    #급량비 계산(4급 팀장 또는 3급 이상 대상)            
+    for i in range(len(merge_table)):
+        if merge_table.loc[i]['NAME'] not in except_case: #3급이상이거나 4급 팀장급이 아닌 건은 스킵
+            continue
+        
+        work_time_range=''#근무유형 시간 범위
+        if merge_table.loc[i]['INOUT']=='None' or len(merge_table.loc[i]['INOUT'])!=9: 
+            # 기록기상 잘못된 정보 들어가있으면 급량비 산정 FALSE
+            continue
+        if merge_table.loc[i]['WORK_TYPE'] in ['0290','0280','0300']: # 재택근무이면 초과근무 0시간이므로 급량비 산정 FALSE
+            continue
+        inout_start=timedelta(
+            minutes=int(merge_table.loc[i]['INOUT'][2:4]),
+            hours=int(merge_table.loc[i]['INOUT'][:2]),
+        )
+        inout_end=timedelta(
+            minutes=int(merge_table.loc[i]['INOUT'][-2:]),
+            hours=int(merge_table.loc[i]['INOUT'][-4:-2]),
+        )
+        
+        virtual_overtime=str(inout_end-inout_start).zfill(8)
+        virtual_overtime=inout[:2]+inout[3:5]
+        
+        
+        if merge_table.loc[i]['WORK_TYPE']=='0060': #주말근무일 때 
+            if virtual_overtime>='0200': #2시간 이상이어야 TRUE
+                merge_table.loc[i]['CAL_MEAL']='TRUE'
+
+        elif merge_table.loc[i]['SHIFT_CD']=='0030': # 09~18 근무자일 때
+            # 시작시간이 08시 이하거나 끝시간이 19시 이후이면
+            
+            if merge_table.loc[i]['INOUT'][:4]<='0800' or merge_table.loc[i]['INOUT'][-4:]>='1900': 
+                merge_table.loc[i]['CAL_MEAL']='TRUE'
+                
+        elif merge_table.loc[i]['SHIFT_CD']=='0040': # 10~19 근무자일 때
+            # 시작시간이 08시 이하거나 끝시간이 20시 이후이면
+            if merge_table.loc[i]['INOUT'][:4]<='0800' or merge_table.loc[i]['INOUT'][-4:]>='2000':
+                merge_table.loc[i]['CAL_MEAL']='TRUE'
+        elif merge_table.loc[i]['SHIFT_CD']=='0020': # 08~17 근무자일 때
+            # 시작시간이 07시 이하거나 끝시간이 19시 이후이면
+            if merge_table.loc[i]['INOUT'][:4]<='0700' or merge_table.loc[i]['INOUT'][-4:]>='1900':
+                merge_table.loc[i]['CAL_MEAL']='TRUE'            
 
     idx=merge_table[merge_table['SHIFT_CD']=='None'].index
     merge_table.drop(idx, inplace=True)
@@ -768,7 +824,7 @@ try:
     # print(merge_table.head(40))
 
     for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+        sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
         cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
