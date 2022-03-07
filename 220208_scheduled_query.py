@@ -18,7 +18,7 @@ try:
                         db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
     cur=conn.cursor() #pymysql 커서
 
-    days_offset=1 #int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
+    days_offset=7 #int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
     now=datetime.now()
     that_moment=(now-timedelta(days=days_offset)).strftime('%Y%m%d')
 
