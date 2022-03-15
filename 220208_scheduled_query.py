@@ -758,6 +758,10 @@ try:
             # 시작시간이 07시 이하거나 끝시간이 19시 이후이면
             if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
                 merge_table.loc[i]['CAL_MEAL']='TRUE'
+        elif merge_table.loc[i]['SHIFT_CD']=='0010': # 07~16 근무자일 때
+            # 시작시간이 06시 이하거나 끝시간이 19시 이후이면
+            if merge_table.loc[i]['FIX1'][:4]<='0600' or merge_table.loc[i]['FIX1'][-4:]>='1900':
+                merge_table.loc[i]['CAL_MEAL']='TRUE'
 
     idx=merge_table[merge_table['SHIFT_CD']=='None'].index
     merge_table.drop(idx, inplace=True)

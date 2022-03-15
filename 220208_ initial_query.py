@@ -6,8 +6,7 @@ import sys, traceback
 from datetime import datetime
 from datetime import timedelta
 from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
-
-for days_offset in range(1,72):
+for days_offset in range(1, 72):
     try: 
         LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
         os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
@@ -759,6 +758,10 @@ for days_offset in range(1,72):
                 # 시작시간이 07시 이하거나 끝시간이 19시 이후이면
                 if merge_table.loc[i]['FIX1'][:4]<='0700' or merge_table.loc[i]['FIX1'][-4:]>='1900':
                     merge_table.loc[i]['CAL_MEAL']='TRUE'
+            elif merge_table.loc[i]['SHIFT_CD']=='0010': # 07~16 근무자일 때
+                # 시작시간이 06시 이하거나 끝시간이 19시 이후이면
+                if merge_table.loc[i]['FIX1'][:4]<='0600' or merge_table.loc[i]['FIX1'][-4:]>='1900':
+                    merge_table.loc[i]['CAL_MEAL']='TRUE'
 
         idx=merge_table[merge_table['SHIFT_CD']=='None'].index
         merge_table.drop(idx, inplace=True)
@@ -769,7 +772,7 @@ for days_offset in range(1,72):
         # print(merge_table.head(40))
 
         for i in range(len(merge_table)):
-            sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+            sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
             cur.execute(sql, list(merge_table.loc[i]))
     except Exception as e:
         print(e)
