@@ -8,7 +8,8 @@ from datetime import timedelta
 from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
 
 try: 
-    LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
+    LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"  # (윈도우기준)오라클 연동하는 프로그램의 위치 필요.
+    # LOCATION = "..\instantclient_21_4"         # (리눅스기준)오라클 연동하는 프로그램의 위치 필요.
     #크론탭으로 만들 때는 로케이션 변경할 것
     os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
     OracleConnect = cx_Oracle.connect(cxinfo['id'], cxinfo['pw'], cxinfo['host'])       # 오라클 연동 정보입력
@@ -18,7 +19,7 @@ try:
                         db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
     cur=conn.cursor() #pymysql 커서
 
-    days_offset=1 #int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
+    days_offset= int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
     now=datetime.now()
     that_moment=(now-timedelta(days=days_offset)).strftime('%Y%m%d')
 
@@ -824,7 +825,7 @@ try:
     # print(merge_table.head(40))
 
     for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+        sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
         cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
