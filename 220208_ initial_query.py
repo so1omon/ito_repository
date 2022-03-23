@@ -712,7 +712,7 @@ for days_offset in range(1, 72):
                         cal_overtime='0000'
                     elif int(cal_overtime)>=400: # 4시간 초과할때
                         cal_overtime='0400'
-                    elif int(cal_overtime)<200:
+                    elif int(cal_overtime)<30:
                         cal_overtime='0000'
                 else :
                     cal_overtime=str(cal_overtime_end-cal_overtime_start-timedelta(hours=9)).zfill(8)

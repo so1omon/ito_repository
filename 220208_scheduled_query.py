@@ -30,7 +30,7 @@ try:
     from ehr2011060.sy7010 A
     left join (select appl_id, ymd, sta_hm, end_hm, del_yn, reward_type
     from ehr2011060.tam2215) B
-    on a.appl_id = b.appl_id
+    on a.appl_id = b.appl_id3
     left join(select ymd, attend_cd, sta_hm, end_hm, appl_id, del_yn
     from ehr2011060.tam5450) C
     on a.appl_id = c.appl_id
@@ -712,7 +712,7 @@ try:
                     cal_overtime='0000'
                 elif int(cal_overtime)>=400: # 4시간 초과할때
                     cal_overtime='0400'
-                elif int(cal_overtime)<200:
+                elif int(cal_overtime)<30:
                     cal_overtime='0000'
             else :
                 cal_overtime=str(cal_overtime_end-cal_overtime_start-timedelta(hours=9)).zfill(8)
