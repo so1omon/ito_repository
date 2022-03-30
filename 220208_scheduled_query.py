@@ -30,7 +30,7 @@ try:
     from ehr2011060.sy7010 A
     left join (select appl_id, ymd, sta_hm, end_hm, del_yn, reward_type
     from ehr2011060.tam2215) B
-    on a.appl_id = b.appl_id3
+    on a.appl_id = b.appl_id
     left join(select ymd, attend_cd, sta_hm, end_hm, appl_id, del_yn
     from ehr2011060.tam5450) C
     on a.appl_id = c.appl_id

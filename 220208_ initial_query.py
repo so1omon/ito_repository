@@ -6,7 +6,7 @@ import sys, traceback
 from datetime import datetime
 from datetime import timedelta
 from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
-for days_offset in range(1, 72):
+for days_offset in range(72, 81):
     try: 
         LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
         os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
