@@ -1,0 +1,8 @@
+instantclient_21_3/
+integrated/instantclient_21_3/
+./__pycache__/
+__pycache__/
+build/
+*.exe
+*.spec
+test.py
