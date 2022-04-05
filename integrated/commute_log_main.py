@@ -25,10 +25,12 @@ if os_name=='Windows':
             interval_sta=datetime.strptime(interval_sta,"%Y-%m-%d")
             interval_end=datetime.strptime(interval_end,"%Y-%m-%d")
             break
+        
 elif os_name=='Linux':
     interval_sta=datetime.now()-one_day
     interval_end=datetime.now()-one_day
     print(f"{interval_sta.strftime('%Y-%m-%d')}~{interval_end.strftime('%Y-%m-%d')} 기록 생성")
+    
 else: # Windows나 리눅스가 아닐 때 강제 종료
     print('Unknown OS version. \nProgram exit')
     sys.exit() 
@@ -50,11 +52,12 @@ try:
     print('MariDB access successfully!')
     
     # 날짜별 루프 돌기
-    while interval_sta<=interval_end:
+    while interval_sta<=interval_end: 
         print(f'{interval_sta} 시작')
         
         days_offset=(interval_end-interval_sta).days # 오늘기준 날짜랑 얼마나 차이나는지
-        interval_sta=interval_sta+one_day
+        interval_sta=interval_sta+one_day # 시작기간 하루 늘리기
+        
         
         ora_cur.execute(query.oracle_get_appl_sql.format(days_offset)) 
         print(list(ora_cur))

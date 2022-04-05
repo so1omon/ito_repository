@@ -6,7 +6,7 @@ import sys, traceback
 from datetime import datetime
 from datetime import timedelta
 from login_info import cx_Oracle_info as cxinfo, pymysql_info as mysqlinfo
-for days_offset in range(72, 81):
+for days_offset in range(31, 35):
     try: 
         LOCATION = "..\instantclient-basic-windows.x64-21.3.0.0.0\instantclient_21_3"         # 오라클 연동하는 프로그램의 위치 필요.
         os.environ["PATH"] = LOCATION + ";" + os.environ["PATH"]
@@ -772,7 +772,7 @@ for days_offset in range(72, 81):
         # print(merge_table.head(40))
 
         for i in range(len(merge_table)):
-            sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+            sql=f"INSERT INTO good.ehr_cal_test values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
             cur.execute(sql, list(merge_table.loc[i]))
     except Exception as e:
         print(e)

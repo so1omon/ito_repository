@@ -19,18 +19,18 @@ cf) [] : DB 또는 dataframe 컬럼명
  > [appl_id] in [bf_appl_id]이면 삭제
  > [TYPE] == '1044'인 데이터의 YMD를 현재 날짜로 변경
  > [TIME] <= [STA_HM(hhmm)]~[END_HM(hhmm)]
- > [TIME] == 'NULL~NULL'인 데이터를 '0000~0000'으로 변경
+ > [TIME] == "NULL NULL"인 데이터를 '0000~~0000'으로 변경
  > dataframe에 삽입 시 데이터베이스에서 null값을 가져오면 'None'으로 초기화
  
 4. merge_table 생성
- > 기존 컬럼에서 dayoff(4), overtime(2~4), busi_trip(4) 삭제
+ > 기존 컬럼에서 dayoff(4), overtime(2-4), busi_trip(4) 삭제
  > connect.hr_info에서 사번, 이름, 조직 가져와서 merge_table에 target_day 날짜 정보와 같이 데이터 추가
  > 3번과 동일하게 dataframe에 삽입 시 데이터베이스에서 null값을 가져오면 'None'으로 초기화
  > origin_table의 정보를 각 사원별로 merge table에 축적시키기
  > > [shift_cd], [work_type]은 따로 가져오기
  > 초과근무 내역과 [shift_cd], [work_type] 반영해서 계획시간 만들기
  > connect.at_att_inout에서 출퇴근정보 조회 후 inout에 반영 
- > > 대휴, 재택을 제외한 09~18 근무자들의 inout은 무조건 default로 0900~1800으로 설정
+ > > 대휴, 재택을 제외한 09-18 근무자들의 inout은 무조건 default로 0900-1800으로 설정
  > 계획시간과 출퇴근시간 반영해서 확정시간 만들기
  > 확정시간과 [shift_cd], [work_type]을 기준으로 초과근무, 급량비 계산
  > > 3급 이상 또는 4급 팀장인 경우 (또는 일반직이면서 연봉제인 사원) 확정시간이 아니라 inout을 기준으로 급량비 계산
