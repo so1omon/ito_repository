@@ -27,3 +27,5 @@ where a.appl_stat_cd = '900' and (
         SELECT TO_CHAR(SYSDATE-{0}, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL
     )
 )"""
+
+pymysql_get_hr_info='SELECT emp_id, emp_nm, org_nm FROM connect.hr_info'

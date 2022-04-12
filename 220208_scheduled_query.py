@@ -45,7 +45,7 @@ try:
         data={'EMP_ID':line[0], 'APPR_YMD':line[1], 'YMD':line[2], 'STA_HM':line[3], 'END_HM':line[4], 'TYPE':line[5], 
             'APPL_ID':line[6], 'DEL_YN':line[7], 'BF_APPL_ID':line[8], 'APPL_TXT':line[9], 'REWARD_TYPE':line[10]}
         origin_table=origin_table.append(data,ignore_index=True)
-
+    # print(origin_table)
     origin_table = origin_table.drop(index=origin_table.loc[origin_table.DEL_YN == 'Y'].index)
     #2. DEL_YN이 Y인 행 삭제
     origin_table = origin_table.drop(index=origin_table.loc[origin_table.BF_APPL_ID != 'NULL'].index)
@@ -56,7 +56,6 @@ try:
     #STA_HM과 END_HM concat
 
     origin_table.drop(['DEL_YN', 'BF_APPL_ID'], axis = 'columns', inplace= True)
-
     origin_table.loc[origin_table.TYPE =='1044','YMD']=datetime.now().strftime('%Y%m%d')
     origin_table.loc[origin_table.TIME =='NULL~NULL','TIME']='0000~0000'
 
@@ -771,9 +770,9 @@ try:
     # print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
     # print(merge_table.head(40))
 
-    for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
-        cur.execute(sql, list(merge_table.loc[i]))
+    # for i in range(len(merge_table)):
+    #     sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+    #     cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
     traceback.print_exc()
