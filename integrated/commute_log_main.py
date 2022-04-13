@@ -20,9 +20,9 @@ if os_name=='Windows':
     
     print('Commute log 생성 기간을 설정해주세요. 특정 날짜의 기록만 생성하려면 동일한 날짜를 입력해주세요.\n')
     while True:
-        interval_sta='20220401'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
-        interval_end='20220401'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
-        if lib.isDate()(interval_sta, interval_end):
+        interval_sta='20220405'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_end='20220405'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        if lib.isDate(interval_sta, interval_end):
             print(f'{interval_sta}~{interval_end} 기록 생성')
             interval_sta=datetime.strptime(interval_sta,"%Y%m%d")
             interval_end=datetime.strptime(interval_end,"%Y%m%d")
@@ -75,8 +75,9 @@ try:
         
         origin_table.drop(['DEL_YN', 'BF_APPL_ID'], axis = 'columns', inplace= True)
         origin_table.loc[origin_table.TYPE =='1044','YMD']=today # TYPE '1044'=> 근무유형(재택근무)신청
+        print(origin_table)
         
-        
+        #merge table 생성
         mysql_cur.execute(f"SELECT {today}, emp_id, emp_nm, org_nm FROM connect.hr_info") # 직원정보 가져오는 쿼리 수행
         x=mysql_cur.fetchall()
         merge_table=pd.DataFrame(x)
@@ -93,7 +94,6 @@ try:
         for col in db.col_merge_table[6:]: # merge table columns 추가
             merge_table[col]='None'
         
-        print(merge_table)
         
         
 except Exception as e:

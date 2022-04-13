@@ -55,8 +55,10 @@ def work_state(work_type): # shift_cd와 work_type을 넣으면 근무시간, �
     
     return result
 
-if __name__=="__main__":
-    print(work_state(input()))
 
-    
+
+# if __name__=="__main__":
+#     print(work_state(input()))
+
+
     
