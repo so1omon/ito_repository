@@ -6,3 +6,4 @@ build/
 *.exe
 *.spec
 test.py
+.vscode/

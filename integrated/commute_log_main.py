@@ -6,8 +6,10 @@ import platform
 # from db import cx_Oracle_info as db.cx_info, pydb.pymysql_info as db.pymysql_info, check_location, col_origin_table
 import db
 import lib
+import test
 from datetime import timedelta, datetime
-import query
+import query, a_module
+
 
 os_name=platform.system() # 운영체제 정보 (Windows/Linux)
 # os_name='Linux' # 테스트용
@@ -93,8 +95,9 @@ try:
         
         for col in db.col_merge_table[6:]: # merge table columns 추가
             merge_table[col]='None'
-        
-        
+            
+        #초과근무 시간으로 계획시간 설정    
+    merge_table=a_module.make_plan(merge_table)
         
 except Exception as e:
     print(e)
