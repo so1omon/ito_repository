@@ -189,6 +189,7 @@ try:
                     overtime = overtime + over_end
                 else:
                     overtime = overtime + '1600'   
+                
                 merge_table.loc[i]['PLAN1'] = overtime
                 merge_table.loc[i]['PLAN2'] = overtime
         elif merge_table.loc[i]['SHIFT_CD'] == '0020':
