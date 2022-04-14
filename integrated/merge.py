@@ -21,7 +21,7 @@ def origin_to_merge(origin_table, merge_table):
                 continue
             temp_time=lib.merge_interval(rows_origin['STA_HM'],rows_origin['END_HM']) # xxxx~xxxx
             
-            if rows_origin['REWARD_TYPE']!='NULL': # reward type이 정의되어 있을 때(주말)
+            if rows_origin['REWARD_TYPE']!='None': # reward type이 정의되어 있을 때(주말)
                 merge_table.at[merge_index,'REWARD_TIME']=temp_time
                 merge_table.at[merge_index,'REWARD_ID']=rows_origin['REWARD_TYPE']
                 merge_table.at[merge_index,'RSN']=rows_origin['RSN']
@@ -38,7 +38,7 @@ def origin_to_merge(origin_table, merge_table):
                     merge_table.at[merge_index,'RSN']=rows_origin['RSN']
 
         elif rows_origin['TYPE']=='1002': #연차
-            if rows_origin['STA_HM']=='NULL':
+            if rows_origin['STA_HM']=='None':
                 continue
             temp_time=rows_origin['STA_HM']+'~'+rows_origin['END_HM']
             for isvalue in dayoff_string_list:
@@ -79,3 +79,4 @@ def origin_to_merge(origin_table, merge_table):
 # merge_table.to_csv('integrated/data/scheduled_query_merge_table.csv',
 #                            sep=',',na_rep='NaN', float_format = '%.2f', # 2 decimal places
 #                            index=False,encoding='utf-8-sig')
+

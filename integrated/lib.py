@@ -58,8 +58,6 @@ def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주�
 def merge_interval(*args):
     return args[0]+'~'+args[1]
 
-make_csv=partial(pandas.DataFrame.to_csv, sep=',',na_rep='NaN', float_format = '%.2f', # 2 decimal places
-                           index=False, encoding='utf-8-sig')
 
 
 # if __name__=="__main__":

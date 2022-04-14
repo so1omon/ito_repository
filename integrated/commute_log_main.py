@@ -3,9 +3,8 @@ import pymysql # Maria DB 연동
 import pandas as pd # dataframe 사용을 위한 패키지
 import os, sys, traceback
 import platform
-import lib, merge, db, query, test, a_module
+import lib, merge, db, query, test, create
 from datetime import timedelta, datetime
-from lib import make_csv
 
 os_name=platform.system() # 운영체제 정보 (Windows/Linux)
 # os_name='Linux' # 테스트용
@@ -77,7 +76,7 @@ try:
         merge_table=pd.DataFrame(x)
         
         merge_table.columns=db.col_merge_table[:4]  #['YMD','EMP_ID','NAME','ORG_NM']
-        print(merge_table)
+        
         ora_cur.execute(query.oracle_insert_table.format(days_offset)) # SHIFT_CD, WORK_TYPE 가져오는 쿼리 수행
         x=ora_cur.fetchall()
         insert_table=pd.DataFrame(x) #근무유형 데이터프레임
@@ -90,18 +89,20 @@ try:
             
         
         pd.set_option('display.max_row', 500)  # df 최대 출력 행 개수 설정  
-        print(merge_table)
         merge_table=merge.origin_to_merge(origin_table, merge_table) # origin table 정보 merge table로 합쳐주기
         merge_table.drop(merge_table[merge_table['SHIFT_CD']=='None'].index, inplace=True) # shift_cd 정보가 없는 행 삭제
         merge_table=merge_table.reset_index(drop=True)
         
-    #     #초과근무 시간으로 계획시간 설정    
-    # merge_table=a_module.make_plan(merge_table)
         
+        # 계획시간 만들기 # <- 박소현
         
-        print(merge_table)
+        # 기록기시간 만들기 # <- 김솔민
+        create.insert_inout(today,merge_table, mysql_cur)
+        # 확정시간 만들기 # <- 공동작업
         
-
+        # 초과근무시간 판별 # <- 원래있던거 쓰기
+        
+        # 급량비 지급여부 판별 # <- 원래있던거 쓰기
 
 except Exception as e:
     print(e)
