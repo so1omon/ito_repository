@@ -97,6 +97,7 @@ try:
 
     # 연차 / 초과근무 / 출장
     for idx in range(len(origin_table)):
+        print('awefaewfwa')
         rows_origin=origin_table.loc[idx] #origin table 행
         cond_emp_id=merge_table['EMP_ID']==rows_origin['EMP_ID']
         merge_index=merge_table.loc[cond_emp_id,'EMP_ID'].keys()[0] #merge table과 사번 일치하는 행 인덱스넘버

@@ -26,7 +26,9 @@ where a.appl_stat_cd = '900' and (
     or a.appl_type='1044' and substr(a.appl_txt,5,10)=(
         SELECT TO_CHAR(SYSDATE-{0}, 'YYYY.MM.DD')AS YYYYMMDD FROM DUAL
     )
-)"""
+)
+order by EMP_ID
+"""
 
 pymysql_get_hr_info='SELECT emp_id, emp_nm, org_nm FROM connect.hr_info'
 

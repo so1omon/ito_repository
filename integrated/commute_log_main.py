@@ -3,13 +3,8 @@ import pymysql # Maria DB 연동
 import pandas as pd # dataframe 사용을 위한 패키지
 import os, sys, traceback
 import platform
-# from db import cx_Oracle_info as db.cx_info, pydb.pymysql_info as db.pymysql_info, check_location, col_origin_table
-import db
-import lib
-import test
+import lib, merge, db, query, test, a_module
 from datetime import timedelta, datetime
-import query, a_module
-
 
 os_name=platform.system() # 운영체제 정보 (Windows/Linux)
 # os_name='Linux' # 테스트용
@@ -19,11 +14,10 @@ one_day=timedelta(days=1)
 today=''
 
 if os_name=='Windows':
-    
     print('Commute log 생성 기간을 설정해주세요. 특정 날짜의 기록만 생성하려면 동일한 날짜를 입력해주세요.\n')
     while True:
-        interval_sta='20220405'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
-        interval_end='20220405'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_sta='20220401'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_end='20220401'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
         if lib.isDate(interval_sta, interval_end):
             print(f'{interval_sta}~{interval_end} 기록 생성')
             interval_sta=datetime.strptime(interval_sta,"%Y%m%d")
@@ -38,8 +32,6 @@ elif os_name=='Linux':
 else: # Windows나 리눅스가 아닐 때 강제 종료
     print('Unknown OS version. \nProgram exit')
     sys.exit() 
-    
-   
     
 try:
     # 환경변수 세팅 및 DB 접속
@@ -77,8 +69,8 @@ try:
         
         origin_table.drop(['DEL_YN', 'BF_APPL_ID'], axis = 'columns', inplace= True)
         origin_table.loc[origin_table.TYPE =='1044','YMD']=today # TYPE '1044'=> 근무유형(재택근무)신청
-        print(origin_table)
-        
+        origin_table.reset_index(inplace=True, drop=False) # drop으로 유실된 index 다시 채우기
+
         #merge table 생성
         mysql_cur.execute(f"SELECT {today}, emp_id, emp_nm, org_nm FROM connect.hr_info") # 직원정보 가져오는 쿼리 수행
         x=mysql_cur.fetchall()
@@ -96,8 +88,14 @@ try:
         for col in db.col_merge_table[6:]: # merge table columns 추가
             merge_table[col]='None'
             
-        #초과근무 시간으로 계획시간 설정    
-    merge_table=a_module.make_plan(merge_table)
+        
+        pd.set_option('display.max_row', 500)  # df 최대 출력 행 개수 설정  
+        print(merge_table)
+        merge_table=merge.origin_to_merge(origin_table, merge_table) # origin table 정보 merge table로 합쳐주기
+        
+    #     #초과근무 시간으로 계획시간 설정    
+    # merge_table=a_module.make_plan(merge_table)
+        
         
 except Exception as e:
     print(e)
