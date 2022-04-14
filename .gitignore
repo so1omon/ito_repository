@@ -8,3 +8,6 @@ build/220208_scheduled_query
 *.spec
 test.py
 .vscode/
+.ipynb_checkpoints
+*.ipynb
+../.vscode/
