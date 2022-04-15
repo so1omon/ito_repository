@@ -3,7 +3,11 @@ import pymysql # Maria DB 연동
 import pandas as pd # dataframe 사용을 위한 패키지
 import os, sys, traceback
 import platform
+<<<<<<< HEAD
 import lib, merge, db, query, make_plan
+=======
+import lib, merge, db, query, test, create
+>>>>>>> origin/master
 from datetime import timedelta, datetime
 
 os_name=platform.system() # 운영체제 정보 (Windows/Linux)
@@ -61,7 +65,6 @@ try:
         origin_table=pd.DataFrame(x) 
         origin_table.columns=db.col_origin_table # origin table 컬럼 설정
         
-        
         origin_table = origin_table.drop(index=origin_table.loc[origin_table.DEL_YN == 'Y'].index) # DEL_YN이 Y인 행 삭제
         origin_table = origin_table.drop(index=origin_table.loc[origin_table.BF_APPL_ID != 'None'].index)  # 삭제 대상이 되는 행 삭제 
         # bf_appl_id가 NULL이 아닌 행 삭제
@@ -70,7 +73,7 @@ try:
         origin_table.drop(['DEL_YN', 'BF_APPL_ID'], axis = 'columns', inplace= True)
         origin_table.loc[origin_table.TYPE =='1044','YMD']=today # TYPE '1044'=> 근무유형(재택근무)신청
         origin_table.reset_index(inplace=True, drop=False) # drop으로 유실된 index 다시 채우기
-
+        
         #merge table 생성
         mysql_cur.execute(f"SELECT {today}, emp_id, emp_nm, org_nm FROM connect.hr_info") # 직원정보 가져오는 쿼리 수행
         x=mysql_cur.fetchall()
@@ -89,15 +92,24 @@ try:
             merge_table[col]='None'
             
         
-        pd.set_option('display.max_rows', 500)  # df 최대 출력 행 개수 설정  
-        
         merge_table=merge.origin_to_merge(origin_table, merge_table) # origin table 정보 merge table로 합쳐주기
        
+        pd.set_option('display.max_row', 500)  # df 최대 출력 행 개수 설정  
+        merge_table=merge.origin_to_merge(origin_table, merge_table) # origin table 정보 merge table로 합쳐주기
+        merge_table.drop(merge_table[merge_table['SHIFT_CD']=='None'].index, inplace=True) # shift_cd 정보가 없는 행 삭제
+        merge_table=merge_table.reset_index(drop=True)
         
-    #초과근무 시간으로 계획시간 설정    
-    merge_table=make_plan.make_plan(merge_table)
-    print(merge_table)
         
+        # 계획시간 만들기 # <- 박소현
+        merge_table=make_plan.make_plan(merge_table)
+        # 기록기시간 만들기 # <- 김솔민
+        create.insert_inout(today,merge_table, mysql_cur)
+        # 확정시간 만들기 # <- 공동작업
+        
+        # 초과근무시간 판별 # <- 원래있던거 쓰기
+        
+        # 급량비 지급여부 판별 # <- 원래있던거 쓰기
+
 except Exception as e:
     print(e)
     traceback.print_exc()

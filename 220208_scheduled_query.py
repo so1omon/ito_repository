@@ -17,7 +17,7 @@ try:
                         db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
     cur=conn.cursor() #pymysql 커서
 
-    days_offset=int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
+    days_offset=13#int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
     now=datetime.now()
     that_moment=(now-timedelta(days=days_offset)).strftime('%Y%m%d')
 
@@ -97,7 +97,6 @@ try:
 
     # 연차 / 초과근무 / 출장
     for idx in range(len(origin_table)):
-        print('awefaewfwa')
         rows_origin=origin_table.loc[idx] #origin table 행
         cond_emp_id=merge_table['EMP_ID']==rows_origin['EMP_ID']
         merge_index=merge_table.loc[cond_emp_id,'EMP_ID'].keys()[0] #merge table과 사번 일치하는 행 인덱스넘버
@@ -173,7 +172,8 @@ try:
 
     std_start = '0900'
     std_end = '1800'
-
+    
+    
         # 초과근무 적용하여 계획시간 만들기
     for i in range(len(merge_table)):
         overtime = ''   
@@ -262,7 +262,8 @@ try:
                     overtime = overtime + std_end   
                 merge_table.loc[i]['PLAN1'] = overtime
                 merge_table.loc[i]['PLAN2'] = overtime
-
+    
+    
         # 기록기 시간 만들기
     for i in range(len(emp_id)):
         inout = ''
@@ -763,12 +764,13 @@ try:
             # 시작시간이 06시 이하거나 끝시간이 19시 이후이면
             if merge_table.loc[i]['FIX1'][:4]<='0600' or merge_table.loc[i]['FIX1'][-4:]>='1900':
                 merge_table.loc[i]['CAL_MEAL']='TRUE'
-
+                
     idx=merge_table[merge_table['SHIFT_CD']=='None'].index
     merge_table.drop(idx, inplace=True)
     merge_table=merge_table.reset_index(drop=True)
     parameters='%s,'*42
 
+    
     # print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
     # print(merge_table.head(40))
 

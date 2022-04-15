@@ -1,4 +1,5 @@
-import datetime
+import datetime, pandas
+from functools import partial
 
 def isDate(*args): # YYYY-MM-DD 유효성 판별
     print()
@@ -56,6 +57,8 @@ def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주�
 
 def merge_interval(*args):
     return args[0]+'~'+args[1]
+
+
 
 # if __name__=="__main__":
 #     print(work_state(input()))
