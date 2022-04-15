@@ -3,11 +3,7 @@ import pymysql # Maria DB 연동
 import pandas as pd # dataframe 사용을 위한 패키지
 import os, sys, traceback
 import platform
-<<<<<<< HEAD
-import lib, merge, db, query, make_plan
-=======
-import lib, merge, db, query, test, create
->>>>>>> origin/master
+import lib, merge, db, query, make_plan, create
 from datetime import timedelta, datetime
 
 os_name=platform.system() # 운영체제 정보 (Windows/Linux)
