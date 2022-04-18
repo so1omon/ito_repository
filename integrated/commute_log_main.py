@@ -3,7 +3,7 @@ import pymysql # Maria DB 연동
 import pandas as pd # dataframe 사용을 위한 패키지
 import os, sys, traceback
 import platform
-import lib, merge, db, query, test, create
+import lib, merge, db, query, create
 from datetime import timedelta, datetime
 
 os_name=platform.system() # 운영체제 정보 (Windows/Linux)
@@ -88,13 +88,13 @@ try:
             merge_table[col]='None'
             
         
-        pd.set_option('display.max_row', 500)  # df 최대 출력 행 개수 설정  
         merge_table=merge.origin_to_merge(origin_table, merge_table) # origin table 정보 merge table로 합쳐주기
+        pd.set_option('display.max_row', 500)  # df 최대 출력 행 개수 설정  
         merge_table.drop(merge_table[merge_table['SHIFT_CD']=='None'].index, inplace=True) # shift_cd 정보가 없는 행 삭제
         merge_table=merge_table.reset_index(drop=True)
         
         # 계획시간 만들기 # <- 박소현
-        
+        merge_table=create.make_plan(merge_table)
         # 기록기시간 만들기 # <- 김솔민
         merge_table=create.insert_inout(today,merge_table, mysql_cur)
         print(merge_table)
