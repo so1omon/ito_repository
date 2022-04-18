@@ -37,7 +37,7 @@ def make_plan(merge_table):
     
     
 def insert_inout(today,merge_table, cur): #  기록기 시간 생성
-   
+
     for i in range(len(merge_table)):
         inout=''
         emp_id=merge_table.loc[i,'EMP_ID']
