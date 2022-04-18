@@ -32,8 +32,8 @@ def make_plan(merge_table):
             #초과근무시간도 없고 reward time 도 없는 경우, work type에 따라서 결정
             planTime = data["work_time"][0]+'~'+data["work_time"][1]
         
-        merge_table.at[i,'PLAN1'] = planTime      #plan1 설정
-    print(merge_table['PLAN1'])
+        merge_table.at[i,'PLAN1'] = planTime      #plan1 설정\
+    return merge_table
     
     
 def insert_inout(today,merge_table, cur): #  기록기 시간 생성
