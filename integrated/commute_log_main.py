@@ -93,11 +93,11 @@ try:
         merge_table.drop(merge_table[merge_table['SHIFT_CD']=='None'].index, inplace=True) # shift_cd 정보가 없는 행 삭제
         merge_table=merge_table.reset_index(drop=True)
         
-        
         # 계획시간 만들기 # <- 박소현
         
         # 기록기시간 만들기 # <- 김솔민
-        create.insert_inout(today,merge_table, mysql_cur)
+        merge_table=create.insert_inout(today,merge_table, mysql_cur)
+        print(merge_table)
         # 확정시간 만들기 # <- 공동작업
         
         # 초과근무시간 판별 # <- 원래있던거 쓰기
