@@ -37,21 +37,30 @@ def make_plan(merge_table):
     
     
 def insert_inout(today,merge_table, cur): #  기록기 시간 생성
-    
+
     for i in range(len(merge_table)):
-        emp_id='20170004'
-        #merge_table.loc[i,'EMP_ID']
         inout=''
-        print(emp_id)
+        emp_id=merge_table.loc[i,'EMP_ID']
         cur.execute(f"""SELECT WORK_INFO_CLOCK FROM connect.at_att_inout
                     WHERE EMP_CODE={emp_id} AND WORK_DATE ={today}
                     AND WORK_CD = 'IN' 
                     ORDER BY WORK_INFO_CLOCK LIMIT 1""") 
+        for line in cur:   # 출근시간
+            inout = line[0]    
+        
+        inout=inout+'~'
         
         cur.execute(f"""SELECT WORK_INFO_CLOCK FROM connect.at_att_inout
                     WHERE EMP_CODE={emp_id} AND WORK_DATE ={today}
-                    AND WORK_CD = 'IN' 
-                    ORDER BY WORK_INFO_CLOCK LIMIT 1""") 
-
-        # print(cur.fetchall())
+                    AND WORK_CD = 'OUT' 
+                    ORDER BY WORK_INFO_CLOCK DESC LIMIT 1""") 
+        for line in cur:   # 퇴근시간
+            inout = inout + line[0]
+        
+        if inout !='~':
+            merge_table.at[i,"INOUT"]=inout 
+        
+        # inout에 출근시간(xxxx)~퇴근시간(xxxx)형태로 전달, 출퇴근시간 모두 존재하지 않으면 아무 값도 넣지 않음
+    return merge_table    
+    
     
