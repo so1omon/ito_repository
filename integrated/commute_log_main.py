@@ -98,8 +98,18 @@ try:
         # 기록기시간 만들기 # <- 김솔민
         merge_table=create.insert_inout(today,merge_table, mysql_cur)
         # 확정시간 만들기 # <- 공동작업
+        print(merge_table)
         
+        new_merge_table = create.make_inout(merge_table)
         
+        print(new_merge_table)
+        # for mem in range(len(merge_table)):
+        #     time_list=[]
+        #     time_list = create.findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
+        #     print(mem,"의 time list : ")
+        #     print(time_list)
+        #     new_list = lib.get_freetime(time_list)      #work state
+        #     print( new_list)
         
         # 초과근무시간 판별 # <- 원래있던거 쓰기
         
