@@ -1,3 +1,4 @@
+from numpy import size
 import pandas as pd
 import lib
 
@@ -64,19 +65,18 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
     return merge_table    
     
     
-# merge table의 각 요소에서 연차 또는 출장 찾아서 넘겨주기
+
 def make_inout(merge_table):
     for mem in range(len(merge_table)):
-        list = findFreeTime(mem,merge_table)
-        # new_list = getFreeTime(list)
-        # # new_list 값 이용해서 inout값 만들기(XXXX~XXXX)
-        # in_out =getInout(new_list)
-        # # inout 값 완성되면 mergetable의 inout에 넣어주기
-        # merge_table.at[mem,'INOUT'] = in_out
+        time_list=[]
+        time_list = findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
+        new_list = lib.get_freetime(time_list)      #work state
+        in_out = setInOut(mem,merge_table,new_list)             # inout 시간 확정
+        merge_table.at[mem,"FIX1"] =in_out             
+    
+    return merge_table
         
-        
-
-# findFreeTime(merge_table)
+# findFreeTime(merge_table) : 해당 사원의 연차 출장 정보 list 리턴 함수
 
 def findFreeTime(mem,merge_table):
     time_list = []
@@ -90,3 +90,32 @@ def findFreeTime(mem,merge_table):
     if(merge_table.at[mem,'BUSI_TRIP2_TIME']!='None'):
         time_list.append(merge_table.loc[mem,'BUSI_TRIP2_TIME'])
     return time_list
+
+def setInOut(mem,merge_table,new_list):
+    in_out = merge_table.at[mem,'INOUT']
+    # 연차, 출장 정보를 보고 inout 확정 짓는 함수
+    # list 길이 : 0,1,2 중 하나
+    if len(new_list)==0:
+        # 연차,출장 정보 없으면 inout 그대로 
+        return in_out
+  
+    else:
+        #있으면 덮어씌우기
+        
+        if(in_out!='None'):
+            in_time,out_time = merge_table.at[mem,'INOUT'].split('~')
+            print(in_time + '~'+out_time)
+            first_start_time,first_end_time= new_list[-1].split('~')   #end_time>= in_time then  in_time = min( in_time,start_time)
+            sec_start_time,sec_end_time = new_list[0].split('~')
+            if first_end_time>=in_time and sec_start_time<=out_time: 
+                in_time = min(in_time,first_start_time)
+                out_time = max(out_time,sec_end_time)
+                in_out = in_time+'~'+out_time 
+                return in_out
+            else:
+                # 아닌 경우 error 처리
+                in_out = merge_table.at[mem,'INOUT']
+                merge_table.at[mem,'FIX1']="ERR"
+
+        else:
+            return in_out

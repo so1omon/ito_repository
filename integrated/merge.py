@@ -19,7 +19,7 @@ def origin_to_merge(origin_table, merge_table):
         if rows_origin['TYPE']=='1008': #초과근무
             if rows_origin['STA_HM']=='None': # 널값 들어 있을 때
                 continue
-            temp_time=lib.merge_interval(rows_origin['STA_HM'],rows_origin['END_HM']) # xxxx~xxxx
+            temp_time=lib.merge_interval([rows_origin['STA_HM'],rows_origin['END_HM']]) # xxxx~xxxx
             
             if rows_origin['REWARD_TYPE']!='None': # reward type이 정의되어 있을 때(주말)
                 merge_table.at[merge_index,'REWARD_TIME']=temp_time
