@@ -97,7 +97,6 @@ try:
         merge_table=create.make_plan(merge_table)
         # 기록기시간 만들기 # <- 김솔민
         merge_table=create.insert_inout(today,merge_table, mysql_cur)
-        print(merge_table)
         # 확정시간 만들기 # <- 공동작업
         
         

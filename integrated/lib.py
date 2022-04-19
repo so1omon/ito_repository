@@ -48,7 +48,9 @@ def work_state(work_type): # shift_cd와 work_type을 넣으면 근무시간, �
     return result
 
 def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주는 함수
-    if len(interval)!=9:
+    if interval=='~':
+        return ['','~','']
+    elif len(interval)!=9:
         if interval[0]=='~':
             return ['None','~',interval[1:]]
         elif interval[4]=='~':
@@ -65,10 +67,9 @@ def get_freetime(time_list): # 한 직원의 특정 날짜에 해당하는 모�
     results=list(map(sep_interval, time_list))
     results=sorted(results, key=lambda result:result[0]) # 시작 시간에 대해서 정렬
 
-    len_results=len(results) # 최초 results 길이
-    i=0
+    i=0 # iterator
     while(i<len(results)-1): # 연결되는 interval 합치기
-        if results[i][2]==results[i+1][0]:
+        if results[i][2]==results[i+1][0]: # 끝시간과 시작시간이 이어질 때 합치기
             results[i]=[results[i][0],'~',results[i+1][2]]
             del results[i+1]
             i=i-1
@@ -78,9 +79,43 @@ def get_freetime(time_list): # 한 직원의 특정 날짜에 해당하는 모�
     results=list(map(merge_interval, results))
     return results
 
-# if __name__=="__main__":
-#     some_list=['1130~1200','0900~1100','1300~1700','1700~1800']
-#     print(get_freetime(some_list))
+def str_to_min(time): # 'xxxx' 4자리 시간 string을 분 단위로 교체
+    return int(time[:2])*60+int(time[2:])
+    
+def get_fixtime(inout, plan, work_type): # inout 한쪽이라도 유실된 데이터는 들어오지 않음
+    temp_state=work_state(work_type)["work_time"]
+    inout=sep_interval(inout)
+    plan=sep_interval(plan)
+    std_start,std_end=temp_state[0],temp_state[1] # 기준근로시간
+    inout_start,inout_end=inout[0],inout[2] # 출퇴근기록
+    plan_start,plan_end=plan[0],plan[2] # 계획시간
+    
+    # 계획시간에 맞춰 컷하기
+    inout_start=max(inout_start, plan_start)
+    inout_end=min(inout_end, plan_end)
+    
+    if work_type=='0060': # 주말근무
+        return merge_interval([inout_start, inout_end])
+    elif inout_start>std_start or inout_end<std_end: # 기준근로시간 충족하지 않을 때 (지각 또는 도망)
+        return 'ERROR'
+    else:
+        if str_to_min(inout_start)>str_to_min(std_start)-30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때
+            inout_start=std_start # 기준 근로시작시간으로 재설정
+        if str_to_min(inout_end)<str_to_min(std_end)+30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때
+            inout_start=std_start # 기준 근로시작시간으로 재설정
+        return merge_interval([inout_start, inout_end])
+    
+    
+    
+
+    
+
+if __name__=="__main__":
+    inout='0900~1800'
+    plan='0900~1800'
+    work_type='0030'
+    
+    print(get_fixtime(inout, plan, work_type))
     
 
 
