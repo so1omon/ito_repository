@@ -55,7 +55,7 @@ def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주�
             return [interval[:4],'~','None']
     return [interval[:4],'~',interval[5:]]
 
-def merge_interval(*args):
+def merge_interval(args):
     if len(args)==2: # ['xxxx','xxxx'] format
         return args[0]+'~'+args[1]
     elif len(args)==3 and args[1]=='~': # ['xxxx','~','xxxx'] format
@@ -78,9 +78,9 @@ def get_freetime(time_list): # 한 직원의 특정 날짜에 해당하는 모�
     results=list(map(merge_interval, results))
     return results
 
-if __name__=="__main__":
-    some_list=['1130~1200','0900~1100','1300~1700','1700~1800']
-    print(get_freetime(some_list))
+# if __name__=="__main__":
+#     some_list=['1130~1200','0900~1100','1300~1700','1700~1800']
+#     print(get_freetime(some_list))
     
 
 
