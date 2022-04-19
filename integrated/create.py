@@ -64,3 +64,29 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
     return merge_table    
     
     
+# merge table의 각 요소에서 연차 또는 출장 찾아서 넘겨주기
+def make_inout(merge_table):
+    for mem in range(len(merge_table)):
+        list = findFreeTime(mem,merge_table)
+        # new_list = getFreeTime(list)
+        # # new_list 값 이용해서 inout값 만들기(XXXX~XXXX)
+        # in_out =getInout(new_list)
+        # # inout 값 완성되면 mergetable의 inout에 넣어주기
+        # merge_table.at[mem,'INOUT'] = in_out
+        
+        
+
+# findFreeTime(merge_table)
+
+def findFreeTime(mem,merge_table):
+    time_list = []
+    if(merge_table.at[mem,'DAYOFF1_TIME']!='None'):
+        # None이 아니면 time_list에 append
+        time_list.append(merge_table.loc[mem,'DAYOFF1_TIME'])
+    if(merge_table.at[mem,'DAYOFF2_TIME']!='None'):
+        time_list.append(merge_table.loc[mem,'DAYOFF2_TIME'])
+    if(merge_table.at[mem,'BUSI_TRIP1_TIME']!='None'):
+        time_list.append(merge_table.loc[mem,'BUSI_TRIP1_TIME'])
+    if(merge_table.at[mem,'BUSI_TRIP2_TIME']!='None'):
+        time_list.append(merge_table.loc[mem,'BUSI_TRIP2_TIME'])
+    return time_list
