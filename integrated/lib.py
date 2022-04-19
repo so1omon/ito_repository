@@ -56,12 +56,32 @@ def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주�
     return [interval[:4],'~',interval[5:]]
 
 def merge_interval(*args):
-    return args[0]+'~'+args[1]
+    if len(args)==2: # ['xxxx','xxxx'] format
+        return args[0]+'~'+args[1]
+    elif len(args)==3 and args[1]=='~': # ['xxxx','~','xxxx'] format
+        return args[0]+'~'+args[2]
 
+def get_freetime(time_list): # 한 직원의 특정 날짜에 해당하는 모든 출장 및 연차 정보를 가져와서 가공 후 리턴
+    results=list(map(sep_interval, time_list))
+    results=sorted(results, key=lambda result:result[0]) # 시작 시간에 대해서 정렬
 
+    len_results=len(results) # 최초 results 길이
+    i=0
+    while(i<len(results)-1): # 연결되는 interval 합치기
+        if results[i][2]==results[i+1][0]:
+            results[i]=[results[i][0],'~',results[i+1][2]]
+            del results[i+1]
+            i=i-1
+        i=i+1
+    if len(results)>=2: # 병합 후의 출장 연차 정보가 2개 이상일 때 처리
+        results=[results[0],results[len(results)-1]]
+    results=list(map(merge_interval, results))
+    return results
 
-# if __name__=="__main__":
-#     print(work_state(input()))
+if __name__=="__main__":
+    some_list=['1130~1200','0900~1100','1300~1700','1700~1800']
+    print(get_freetime(some_list))
+    
 
 
     
