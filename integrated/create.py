@@ -72,7 +72,8 @@ def make_inout(merge_table):
         time_list = findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
         new_list = lib.get_freetime(time_list)      #work state
         in_out = setInOut(mem,merge_table,new_list)             # inout 시간 확정
-        merge_table.at[mem,"FIX1"] =in_out             
+        print(mem , ":", in_out)
+        merge_table.at[mem,'FIX1'] = in_out             
     
     return merge_table
         
@@ -92,30 +93,33 @@ def findFreeTime(mem,merge_table):
     return time_list
 
 def setInOut(mem,merge_table,new_list):
-    in_out = merge_table.at[mem,'INOUT']
+    in_out = merge_table.at[mem,'INOUT']        #in_out : 
+    list = new_list
     # 연차, 출장 정보를 보고 inout 확정 짓는 함수
     # list 길이 : 0,1,2 중 하나
-    if len(new_list)==0:
+    if len(list)==0:
         # 연차,출장 정보 없으면 inout 그대로 
         return in_out
   
     else:
-        #있으면 덮어씌우기
+        #연차,출장 정보 있으면 덮어씌우기
+        # in_out 이 None 이 아닌 경우
+        in_time = lib.sep_interval(in_out)[0]
+        out_time = lib.sep_interval(in_out)[2]
+        print(in_time + '~'+out_time)
         
-        if(in_out!='None'):
-            in_time,out_time = merge_table.at[mem,'INOUT'].split('~')
-            print(in_time + '~'+out_time)
-            first_start_time,first_end_time= new_list[-1].split('~')   #end_time>= in_time then  in_time = min( in_time,start_time)
-            sec_start_time,sec_end_time = new_list[0].split('~')
-            if first_end_time>=in_time and sec_start_time<=out_time: 
-                in_time = min(in_time,first_start_time)
-                out_time = max(out_time,sec_end_time)
-                in_out = in_time+'~'+out_time 
-                return in_out
-            else:
-                # 아닌 경우 error 처리
-                in_out = merge_table.at[mem,'INOUT']
-                merge_table.at[mem,'FIX1']="ERR"
-
+        first_start_time = lib.sep_interval(list[0])[0]
+        first_end_time = lib.sep_interval(list[0])[2]
+        sec_start_time = lib.sep_interval(list[-1])[0]
+        sec_end_time = lib.sep_interval(list[-1])[2]
+        
+        if first_end_time>=in_time and sec_start_time<=out_time: 
+            in_time = min(in_time,first_start_time)
+            out_time = max(out_time,sec_end_time)
+            in_out = in_time+'~'+out_time 
+            return in_out
         else:
+            # 아닌 경우 error 처리
+            in_out = merge_table.at[mem,'INOUT']
+            merge_table.at[mem,'FIX1']="ERR"
             return in_out
