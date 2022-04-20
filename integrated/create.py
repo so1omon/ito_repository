@@ -119,3 +119,27 @@ def setInOut(mem,merge_table,new_list):
 
         else:
             return in_out
+        
+        
+def get_fixtime(idx, merge_table): # inout 한쪽이라도 유실된 데이터는 들어오지 않음 inout, plan, work_type
+    temp_state=lib.work_state(merge_table.loc[idx, "WORK_TYPE"])
+    inout=lib.sep_interval(merge_table.loc[idx, "INOUT"])
+    plan=lib.sep_interval(merge_table.loc[idx, "PLAN1"])
+    std_start,std_end=temp_state[0],temp_state[1] # 기준근로시간
+    inout_start,inout_end=inout[0],inout[2] # 출퇴근기록
+    plan_start,plan_end=plan[0],plan[2] # 계획시간
+    
+    # 계획시간에 맞춰 컷하기
+    inout_start=max(inout_start, plan_start)
+    inout_end=min(inout_end, plan_end)
+    
+    if temp_state["work_weekend"]: # 주말근무
+        return lib.merge_interval([inout_start, inout_end])
+    elif inout_start>std_start or inout_end<std_end: # 기준근로시간 충족하지 않을 때 (지각 또는 도망)
+        return 'ERROR'
+    else:
+        if lib.str_to_min(inout_start)>lib.str_to_min(std_start)-30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때
+            inout_start=std_start # 기준 근로시작시간으로 재설정
+        if lib.str_to_min(inout_end)<lib.str_to_min(std_end)+30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때
+            inout_start=std_start # 기준 근로시작시간으로 재설정
+        return lib.merge_interval([inout_start, inout_end])
