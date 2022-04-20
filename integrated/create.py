@@ -40,16 +40,14 @@ def make_plan(merge_table):
 def insert_inout(today,merge_table, cur): #  기록기 시간 생성
 
     for i in range(len(merge_table)):
-        inout=''
+        inout='~'
         emp_id=merge_table.loc[i,'EMP_ID']
         cur.execute(f"""SELECT WORK_INFO_CLOCK FROM connect.at_att_inout
                     WHERE EMP_CODE={emp_id} AND WORK_DATE ={today}
                     AND WORK_CD = 'IN' 
                     ORDER BY WORK_INFO_CLOCK LIMIT 1""") 
         for line in cur:   # 출근시간
-            inout = line[0]    
-        
-        inout=inout+'~'
+            inout = line[0]+inout
         
         cur.execute(f"""SELECT WORK_INFO_CLOCK FROM connect.at_att_inout
                     WHERE EMP_CODE={emp_id} AND WORK_DATE ={today}
@@ -58,10 +56,18 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
         for line in cur:   # 퇴근시간
             inout = inout + line[0]
         
-        if inout !='~':
-            merge_table.at[i,"INOUT"]=inout 
         
-        # inout에 출근시간(xxxx)~퇴근시간(xxxx)형태로 전달, 출퇴근시간 모두 존재하지 않으면 아무 값도 넣지 않음
+        if merge_table.loc[i,'WORK_TYPE']=='0030': # 09~18 평일 근무자들은 기본값 09~18로 세팅
+            inout_start=lib.sep_interval(inout)[0]
+            inout_end=lib.sep_interval(inout)[2]
+            if inout_start=='None' or inout_start>'0900':
+                inout_start='0900'
+            if inout_end=='None' or inout_end<'1800':
+                inout_end='1800'
+            inout=lib.merge_interval(inout_start, inout_end)
+        
+        merge_table.at[i,"INOUT"]=inout 
+        # inout에 출근시간(xxxx)~퇴근시간(xxxx)형태로 전달
     return merge_table    
     
 
