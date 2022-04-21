@@ -82,6 +82,19 @@ def get_freetime(time_list): # 한 직원의 특정 날짜에 해당하는 모�
 def str_to_min(time): # 'xxxx' 4자리 시간 string을 분 단위로 교체
     return int(time[:2])*60+int(time[2:])
     
+# 초과근무 있는 경우 계획시간 만들기
+def overToPlan(overtime,data):
+    over_start, over_end = overtime.split('~')
+    # 초과근무 시간이 기존근로시간 벗어난 경우 plantime = 'None'
+    if over_start>=data['work_time'][1]:
+        plantime='None'
+        
+    else:
+        over_start = min(data["work_time"][0],over_start)     #더 작은 시간이 초과근무 시작시간
+        over_end = max(data["work_time"][1],over_end)         #더 많은 시간이 초과근무 끝시간
+        plantime = over_start+'~'+over_end
+    return plantime                                     #'0000~0000' or None
+
 # if __name__=="__main__":
 #     inout='0900~1800'
 #     plan='0900~1800'

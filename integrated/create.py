@@ -5,13 +5,7 @@ import lib
 
 # 계획시간(plan1,plan2) 설정하는 함수
 
-# 초과근무 있는 경우 계획시간 만들기:lib.py 로 옮김
-def overToPlan(overtime,data):
-    over_start, over_end = overtime.split('~')
-    over_start = min(data["work_time"][0],over_start)     #더 작은 시간이 초과근무 시작시간
-    over_end = max(data["work_time"][1],over_end)         #더 많은 시간이 초과근무 끝시간
-    plantime = over_start+'~'+over_end
-    return plantime                                     #'0000~0000'
+
 
 def make_plan(merge_table):
     for i in range(len(merge_table)):
@@ -23,7 +17,12 @@ def make_plan(merge_table):
         data = lib.work_state(work_type)        # {work_time,work_home,work_weekend}
         if overtime != 'None':
             # 초과근무시간이 있는 경우 OverToPlan 함수 적용
-            planTime = overToPlan(overtime,data)
+            
+            planTime = lib.overToPlan(overtime,data)
+            if planTime == 'None':
+                # error처리, fix1='None'처리
+                merge_table.at[i,'ERROR_INFO']='초과근무 오류'
+                merge_table.at[i,'FIX1']='ERROR'
             
         elif merge_table.loc[i]['REWARD_TIME']!='None':
             #휴일근무자인 경우, overtime은 없고 Reward time을 planTime으로 가짐
@@ -100,51 +99,43 @@ def setInOut(mem,merge_table,new_list):
     list = new_list
     # 연차, 출장 정보를 보고 inout 확정 짓는 함수
     # list 길이 : 0,1,2 중 하나
-    if len(list)==0:
-        # 연차,출장 정보 없으면 inout 그대로 
-        merge_table.at[mem,'FIX1']= in_out
+    #  error 있는 경우, fix1 바꾸지 않음
+    if merge_table.loc[mem,'ERROR_INFO']!='None':
+        pass
     else:
-        #연차,출장 정보 있으면 덮어씌우기
-        in_time = lib.sep_interval(in_out)[0]
-        out_time = lib.sep_interval(in_out)[2]
         
-        #  1개인 경우
-        if len(list)==1:
-            start_time = lib.sep_interval(list[0])[0]       #XXXX
-            end_time = lib.sep_interval(list[0])[2]         #XXXX
-            if in_time == '':
-                in_time = start_time
-            if out_time == '':
-                out_time = end_time
-            if in_time<=end_time and out_time >= end_time:
-                in_time = min(in_time,start_time)
-                out_time = max(out_time,end_time)
-                in_out = lib.merge_interval([in_time,out_time])
-                merge_table.at[mem,'FIX1']=in_out
-            else:
-                merge_table.at[mem,'FIX1']= in_out
-                merge_table.at[mem,'ERROR_INFO']="time empty" 
-                
+        if len(list)==0:
+            # 연차,출장 정보 없으면 inout 그대로 
+            merge_table.at[mem,'FIX1']= in_out
+        else:
+            #연차,출장 정보 있으면 덮어씌우기
+            in_time = lib.sep_interval(in_out)[0]
+            out_time = lib.sep_interval(in_out)[2]
             
-        elif len(list)==2:
-            start_time = [list[i][0] for i in range(len(list))]         # start_time[0]='XXXX' start_time[1]='XXXX'
-            end_time = [list[i][2]for i in range(len(list))]     
-            if in_time =='':
-                in_time = first_start_time
-            if out_time == '':
-                out_time = sec_end_time
-            if end_time[0]>=in_time and start_time[1]<=out_time: 
-                in_time = min(in_time,start_time[0])
-                out_time = max(out_time,end_time[1])
-                in_out = lib.merge_interval([in_time,out_time])
-                merge_table.at[mem,'FIX1']= in_out
-            else:
-            # 아닌 경우 error 처리
-                merge_table.at[mem,'FIX1']= in_out
-                merge_table.at[mem,'ERROR_INFO']="time empty" 
-        #  2개인 경우
-        
-        # inout 시간공백 있는 경우 처리
+            #  1개인 경우
+            if len(list)==1:
+                start_time = lib.sep_interval(list[0])[0]       #XXXX
+                end_time = lib.sep_interval(list[0])[2]         #XXXX
+                if in_time<=end_time and out_time >= start_time:
+                    in_time = min(in_time,start_time)
+                    out_time = max(out_time,end_time)
+                    in_out = lib.merge_interval([in_time,out_time])
+                    merge_table.at[mem,'FIX1']=in_out
+                else:
+                    merge_table.at[mem,'FIX1']= in_out
+                    
+            #  2개인 경우
+            elif len(list)==2:
+                start_time = [list[i][0] for i in range(len(list))]         # start_time[0]='XXXX' start_time[1]='XXXX'
+                end_time = [list[i][2]for i in range(len(list))]     
+                if end_time[0]>=in_time and start_time[1]<=out_time: 
+                    in_time = min(in_time,start_time[0])
+                    out_time = max(out_time,end_time[1])
+                    in_out = lib.merge_interval([in_time,out_time])
+                    merge_table.at[mem,'FIX1']= in_out
+                else:
+                # 아닌 경우 error 처리
+                    merge_table.at[mem,'FIX1']= in_out
         
         
                 

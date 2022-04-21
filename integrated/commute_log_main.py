@@ -16,8 +16,8 @@ today=''
 if os_name=='Windows':
     print('Commute log 생성 기간을 설정해주세요. 특정 날짜의 기록만 생성하려면 동일한 날짜를 입력해주세요.\n')
     while True:
-        interval_sta='20220401'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
-        interval_end='20220401'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_sta='20220404'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_end='20220404'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
         if lib.isDate(interval_sta, interval_end):
             print(f'{interval_sta}~{interval_end} 기록 생성')
             interval_sta=datetime.strptime(interval_sta,"%Y%m%d")
@@ -101,13 +101,6 @@ try:
         
         merge_table = create.make_fix(merge_table)
         print(merge_table)
-        # for mem in range(len(merge_table)):
-        #     time_list=[]
-        #     time_list = create.findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
-        #     print(mem,"의 time list : ")
-        #     print(time_list)
-        #     new_list = lib.get_freetime(time_list)      #work state
-        #     print( new_list)
         
         # 초과근무시간 판별 # <- 원래있던거 쓰기
         
