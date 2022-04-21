@@ -52,9 +52,9 @@ def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주�
         return ['','~','']
     elif len(interval)!=9:
         if interval[0]=='~':
-            return ['None','~',interval[1:]]
+            return ['','~',interval[1:]]
         elif interval[4]=='~':
-            return [interval[:4],'~','None']
+            return [interval[:4],'~','']
     return [interval[:4],'~',interval[5:]]
 
 def merge_interval(args):

@@ -97,19 +97,10 @@ try:
         merge_table=create.make_plan(merge_table)
         # 기록기시간 만들기 # <- 김솔민
         merge_table=create.insert_inout(today,merge_table, mysql_cur)
-        # 확정시간 만들기 # <- 공동작업
-        print(merge_table)
+        # # 확정시간 만들기 # <- 공동작업
         
-        for mem in range(len(merge_table)):
-            time_list=[]
-            time_list = create.findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
-            new_list = lib.get_freetime(time_list)      #work state
-            print(new_list)
-            in_out = create.setInOut(mem,merge_table,new_list)             # inout 시간 확정
-            print(mem , ":",merge_table.at[mem,'INOUT'],"->", in_out)
-            print("\n")
-        # merge_table = create.make_inout(merge_table)
-        # print(merge_table)
+        merge_table = create.make_fix(merge_table)
+        print(merge_table)
         # for mem in range(len(merge_table)):
         #     time_list=[]
         #     time_list = create.findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
