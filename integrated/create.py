@@ -145,13 +145,15 @@ def setInOut(mem,merge_table,new_list):
         
         
         
-def get_fixtime(idx, merge_table): # inout 한쪽이라도 유실된 데이터는 들어오지 않음 inout, plan, work_type
+def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최종결정
     temp_state=lib.work_state(merge_table.loc[idx, "WORK_TYPE"])
     temp_fix=lib.sep_interval(merge_table.loc[idx, "FIX1"])
     plan=lib.sep_interval(merge_table.loc[idx, "PLAN1"])
     std_start,std_end=temp_state[0],temp_state[1] # 기준근로시간
     fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
     plan_start,plan_end=plan[0],plan[2] # 계획시간
+    
+    error=merge_table.loc[idx,"ERROR_INFO"]
     
     # 계획시간에 맞춰 컷하기
     fix_start=max(fix_start, plan_start)
@@ -161,16 +163,31 @@ def get_fixtime(idx, merge_table): # inout 한쪽이라도 유실된 데이터�
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end]) # 앞단에서 잘 처리했기 때문에 그대로 리턴
     
     else:
-        if lib.str_to_min(fix_start)>lib.str_to_min(std_start)-30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때
-            if fix_start>std_start:
-                merge_table.at[idx, "ERROR_INFO"]=merge_table.at[idx, "ERROR_INFO"]+'지각'# 지각처리
+        if error!='': # 에러정보가 포함되어 있으면 그대로 넘기기
+            merge_table.at[idx,"FIX1"]='ERROR'
+            return
+        if fix_start!='':
+            if fix_start<=std_start:
+                if lib.str_to_min(fix_start)>lib.str_to_min(std_start)-30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때   
+                    fix_start=std_start
+                else:
+                    fix_start=max(fix_start, plan_start)
             else:
-                fix_start=std_start # 기준 근로시작시간으로 재설정
-        if lib.str_to_min(fix_end)<lib.str_to_min(std_end)+30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때
-            if fix_end>std_end:
-                merge_table.at[idx, "ERROR_INFO"]=merge_table.at[idx, "ERROR_INFO"]+'무단퇴근' # 무단퇴근처리
+                merge_table.at[idx,"ERROR_INFO"]='지각'
+        if fix_end!='':
+            if fix_end>=std_end:
+                if lib.str_to_min(fix_end)<lib.str_to_min(std_end)-30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때   
+                    fix_end=std_end
+                else:
+                    fix_end=min(fix_end, plan_end)
             else:
-                fix_end=std_end # 기준 근로시작시간으로 재설정
+                if error!='':
+                    merge_table.at[idx,"ERROR_INFO"]=error+', 무단퇴근'
+                else:
+                    merge_table.at[idx,"ERROR_INFO"]='무단퇴근'
+                    
+        if fix_start=='' or fix_end =='':
+            merge_table.at[idx, "ERROR"]='출근 또는 퇴근 유실' 
             
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 

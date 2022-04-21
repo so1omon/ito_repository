@@ -51,7 +51,7 @@ def origin_to_merge(origin_table, merge_table):
                     continue
                 
                 if isvalue==dayoff_string_list[-1]:
-                    raise Exception('연차 신청 내역이 3개 이상입니다.')#예외 발생 
+                    merge_table.at[merge_index, 'ERROR_INFO']='연차 신청 내역 3개 이상'
                 
         elif rows_origin['TYPE']=='1010': #출장
             temp_time=rows_origin['STA_HM']+'~'+rows_origin['END_HM']
@@ -65,7 +65,7 @@ def origin_to_merge(origin_table, merge_table):
                     merge_table.at[merge_index,busitrip_string_id_list[busitrip_string_list.index(isvalue)]]=rows_origin['APPL_ID']                
                     
                 if isvalue==busitrip_string_list[-1]:
-                    raise Exception('연차 신청 내역이 3개 이상입니다.')#예외 발생 
+                    merge_table.at[merge_index, 'ERROR_INFO']='출장 신청 내역 3개 이상'
 
         elif rows_origin['TYPE']=='1044': #재택
             merge_table.at[merge_index, 'HOME_ID']=rows_origin['APPL_ID']
