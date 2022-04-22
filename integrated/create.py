@@ -1,6 +1,7 @@
 from numpy import size
 import pandas as pd
 import lib
+import db
 
 
 # 계획시간(plan1,plan2) 설정하는 함수
@@ -37,25 +38,23 @@ def make_plan(merge_table):
     
     
 def insert_inout(today,merge_table, cur): #  기록기 시간 생성
-
+    cur.execute(f"""SELECT * FROM connect.at_att_inout
+                    WHERE WORK_DATE ={today}""")
+    x=cur.fetchall()
+    inout_table=pd.DataFrame(x)
+    inout_table.columns=db.col_inout_table
+    
     for i in range(len(merge_table)):
         inout='~'
         emp_id=merge_table.loc[i,'EMP_ID']
-        cur.execute(f"""SELECT WORK_INFO_CLOCK FROM connect.at_att_inout
-                    WHERE EMP_CODE={emp_id} AND WORK_DATE ={today}
-                    AND WORK_CD = 'IN' 
-                    ORDER BY WORK_INFO_CLOCK LIMIT 1""") 
-        for line in cur:   # 출근시간
-            inout = line[0]+inout
+        print(emp_id)
+        target_in_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='IN')].sort_values(by='WORK_INFO_CLOCK', ascending=True).reset_index(drop=True)
+        target_out_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='out')].sort_values(by='WORK_INFO_CLOCK', ascending=False).reset_index(drop=True)
+        if len(target_in_table)!=0:   # 출근시간
+            inout = target_in_table.loc[0, "WORK_INFO_CLOCK"]+inout
         
-        cur.execute(f"""SELECT WORK_INFO_CLOCK FROM connect.at_att_inout
-                    WHERE EMP_CODE={emp_id} AND WORK_DATE ={today}
-                    AND WORK_CD = 'OUT' 
-                    ORDER BY WORK_INFO_CLOCK DESC LIMIT 1""") 
-        for line in cur:   # 퇴근시간
-            inout = inout + line[0]
-        
-        
+        if len(target_out_table)!=0:   # 출근시간
+            inout = inout+target_out_table.loc[0, "WORK_INFO_CLOCK"]
         if merge_table.loc[i,'WORK_TYPE']=='0030': # 09~18 평일 근무자들은 기본값 09~18로 세팅
             inout_start=lib.sep_interval(inout)[0]
             inout_end=lib.sep_interval(inout)[2]
@@ -63,11 +62,11 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
                 inout_start='0900'
             if inout_end=='' or inout_end<'1800':
                 inout_end='1800'
-            inout=lib.merge_interval([inout_start, inout_end])
-        
+            inout=lib.merge_interval([inout_start, inout_end])    
+            
         merge_table.at[i,"INOUT"]=inout 
         # inout에 출근시간(xxxx)~퇴근시간(xxxx)형태로 전달
-    return merge_table    
+    return merge_table
     
 
 def make_fix(merge_table): # 확정시간 만들기
@@ -76,7 +75,7 @@ def make_fix(merge_table): # 확정시간 만들기
         time_list = findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
         new_list = lib.get_freetime(time_list)      #work state
         setInOut(mem,merge_table,new_list)             # inout 시간 확정        
-    
+        get_fixtime(mem, merge_table)
     return merge_table
         
 # findFreeTime(merge_table) : 해당 사원의 연차 출장 정보 list 리턴 함수
@@ -137,19 +136,11 @@ def setInOut(mem,merge_table,new_list):
                 # 아닌 경우 error 처리
                     merge_table.at[mem,'FIX1']= in_out
         
-        
-                
-            
-            
-            
-        
-        
-        
 def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최종결정
     temp_state=lib.work_state(merge_table.loc[idx, "WORK_TYPE"])
     temp_fix=lib.sep_interval(merge_table.loc[idx, "FIX1"])
     plan=lib.sep_interval(merge_table.loc[idx, "PLAN1"])
-    std_start,std_end=temp_state[0],temp_state[1] # 기준근로시간
+    std_start,std_end=temp_state['work_time'][0],temp_state['work_time'][1] # 기준근로시간 
     fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
     plan_start,plan_end=plan[0],plan[2] # 계획시간
     
@@ -163,7 +154,7 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end]) # 앞단에서 잘 처리했기 때문에 그대로 리턴
     
     else:
-        if error!='': # 에러정보가 포함되어 있으면 그대로 넘기기
+        if error!='None': # 에러정보가 포함되어 있으면 그대로 넘기기
             merge_table.at[idx,"FIX1"]='ERROR'
             return
         if fix_start!='':
@@ -200,5 +191,7 @@ def get_overtime(idx, merge_table):
     #1. 양쪽 유실되었을 때
     #2. 한쪽 유실되었을 때
     #3. 정상적일 때 (ERROR_INFO 있을 때와 없을 때 나눠서)
+    
+    
 
     

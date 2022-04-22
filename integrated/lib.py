@@ -48,7 +48,7 @@ def work_state(work_type): # shift_cd와 work_type을 넣으면 근무시간, �
     return result
 
 def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주는 함수
-    if interval=='~':
+    if (interval=='~') or (interval=='None') :
         return ['','~','']
     elif len(interval)!=9:
         if interval[0]=='~':
