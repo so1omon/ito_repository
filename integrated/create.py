@@ -29,10 +29,12 @@ def make_plan(merge_table):
             #휴일근무자인 경우, overtime은 없고 Reward time을 planTime으로 가짐
             planTime =  reward_time
                 
-        else:
+        else :
             #초과근무시간도 없고 reward time 도 없는 경우, work type에 따라서 결정
             planTime = data["work_time"][0]+'~'+data["work_time"][1]
         
+        if planTime == "None~None":
+            planTime = 'None'
         merge_table.at[i,'PLAN1'] = planTime      #plan1 설정\
     return merge_table
     
