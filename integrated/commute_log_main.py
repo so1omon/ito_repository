@@ -25,8 +25,8 @@ if os_name=='Windows':
             break
         
 elif os_name=='Linux':
-    interval_sta=datetime.now()-one_day
-    interval_end=datetime.now()-one_day
+    interval_sta=datetime.now()
+    interval_end=datetime.now()
     print(f"{interval_sta.strftime('%Y-%m-%d')}~{interval_end.strftime('%Y-%m-%d')} 기록 생성")
     
 else: # Windows나 리눅스가 아닐 때 강제 종료
@@ -71,7 +71,7 @@ try:
         origin_table.reset_index(inplace=True, drop=False) # drop으로 유실된 index 다시 채우기
         
         #merge table 생성
-        mysql_cur.execute(f"SELECT {today}, emp_id, emp_nm, org_nm FROM connect.hr_info") # 직원정보 가져오는 쿼리 수행
+        mysql_cur.execute(f"SELECT '{today}', emp_id, emp_nm, org_nm FROM connect.hr_info") # 직원정보 가져오는 쿼리 수행
         x=mysql_cur.fetchall()
         merge_table=pd.DataFrame(x)
         
@@ -99,11 +99,15 @@ try:
         merge_table=create.insert_inout(today,merge_table, mysql_cur)
         # # 확정시간 만들기 # <- 공동작업
         merge_table = create.make_fix(merge_table)
-        print(merge_table)
         
-        # 초과근무시간 판별 # <- 원래있던거 쓰기
+        parameters='%s,'*28
         
-        # 급량비 지급여부 판별 # <- 원래있던거 쓰기
+        for i in range(len(merge_table)):
+            print(list(merge_table.loc[i]))
+            sql=f"INSERT INTO connect.ehr_cal values ({i+1},{parameters[:-1]})" #날짜별 NUM(사번연번) + 27개의 parameters
+            mysql_cur.execute(sql, list(merge_table.loc[i]))
+        
+        # 급량비 지급여 부 판별 # <- 원래있던거 쓰기
 
 except Exception as e:
     print(e)
@@ -112,7 +116,9 @@ except Exception as e:
 
 finally:
     # DB connection close()
-    pass
+    mysql_conn.commit()
+    mysql_conn.close()
+    ora_conn.close()
 
 
 

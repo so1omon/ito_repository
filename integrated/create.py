@@ -78,6 +78,8 @@ def make_fix(merge_table): # 확정시간 만들기
         new_list = lib.get_freetime(time_list)      #work state
         setInOut(mem,merge_table,new_list)             # inout 시간 확정        
         get_fixtime(mem, merge_table)
+        get_overtime(mem, merge_table)
+        get_meal(mem, merge_table)
     return merge_table
         
 # findFreeTime(merge_table) : 해당 사원의 연차 출장 정보 list 리턴 함수
@@ -212,7 +214,7 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
             
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 
-def get_overtime(idx, merge_table):
+def get_overtime(idx, merge_table): # 초과근무시간 산정
     cal_overtime_start=0 # 앞단의 초과근무시간
     cal_overtime_end=0 # 뒷단의 초과근무시간
     temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
@@ -236,7 +238,25 @@ def get_overtime(idx, merge_table):
         merge_table.at[idx, 'ERROR_INFO']=merge_table.loc[idx, 'ERROR_INFO']+', 누락 건에 대한 초과근무 시간 인정'
     merge_table.at[idx, 'CAL_OVERTIME']=result
     
+def get_meal(idx, merge_table):
+    merge_table.at[idx, 'CAL_MEAL']='FALSE'
+    temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
     
-        
+    cond_1=merge_table.loc[idx,'CAL_OVERTIME']<'0100' # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
+    cond_2=merge_table.loc[idx,'FIX1']=='ERROR' # 잘못된 정보 들어가있으면 급량비 산정 FALSE
+    cond_3=len(merge_table.loc[idx,'FIX1'])!=9 # 잘못된 정보 들어가있으면 급량비 산정 FALSE -> 출퇴근 한쪽만 충족할 경우 물어보기
+    cond_4=temp_state["work_home"]==True # 재택근무이면 초과근무 0시간이므로 급량비 산정 FALSE
+    
+    if cond_1 or cond_2 or cond_3 or cond_4: # 4가지 조건 중 하나라도 만족하면 해당 행 작업 종료
+        return
+    
+    if (temp_state["work_weekend"]==True) and (merge_table.loc[idx, 'CAR_OVERTIME'] >= '0200'): # 주말근무일 때 2시간 이상이어야 TRUE
+        merge_table.at[idx, 'CAL_MEAL']='TRUE'
+    
+    # 급량비 조건 만족하는지 (기준근로시간 기준 출근이 한시간 빠르거나 )
+    elif fix_start<=min(lib.sub_time(std_start,'0100'),'0800') or fix_end>=max(lib.add_time(std_end,'0100'),'1900'): 
+        merge_table.at[idx, 'CAL_MEAL']='TRUE'
+    # if (merge_table.loc[idx,'CAL_OVERTIME'])<'0100' or merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9
+    
 
     
