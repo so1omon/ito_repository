@@ -215,10 +215,12 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 
 def get_overtime(idx, merge_table):
-    cal_overtime_start='' # 앞단의 초과
+    cal_overtime_start='' # 앞단의 초과근무시간
     cal_overtime_end=''
     temp_fix=lib.sep_interval(merge_table.loc[idx, "FIX1"])
     fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
+    
+    
     
     #1. 양쪽 유실되었을 때
     #2. 한쪽 유실되었을 때
