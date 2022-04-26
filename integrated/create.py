@@ -118,7 +118,6 @@ def setInOut(mem,merge_table,new_list):
     if merge_table.loc[mem,'ERROR_INFO']!='None':
         pass
     else:
-        
         if len(list)==0:
             # 연차,출장 정보 없으면 inout 그대로 
             merge_table.at[mem,'FIX1']= in_out
