@@ -48,7 +48,7 @@ def work_state(work_type): # shift_cd와 work_type을 넣으면 근무시간, �
     return result
 
 def sep_interval(interval): # xxxx~xxxx 포맷의 시간 간격을 분리해주는 함수
-    if (interval=='~') or (interval=='None') :
+    if (interval=='~') or (interval=='None') or (interval=='ERROR'):
         return ['','~','']
     elif len(interval)!=9:
         if interval[0]=='~':
@@ -81,6 +81,23 @@ def get_freetime(time_list): # 한 직원의 특정 날짜에 해당하는 모�
 
 def str_to_min(time): # 'xxxx' 4자리 시간 string을 분 단위로 교체
     return int(time[:2])*60+int(time[2:])
+
+def min_to_str(time): # 분 단위 정수값을 'xxxx' 4자리 시간 string으로 교체
+    return str(int(int(time)/60)).zfill(2)+str(int(int(time)%60)).zfill(2)
+
+def sub_time(str1, str2): # 'xxxx' 4자리 시간 string 2개를 받아서 그 차이를 리턴, 최솟값은 '0000'
+    start, end=str_to_min(str1), str_to_min(str2)
+    
+    result=max(0,start-end)
+    
+    return min_to_str(result)
+
+def add_time(str1, str2): # 'xxxx' 4자리 시간 string 2개를 받아서 그 합을 리턴, 최솟값은 '0000'
+    start, end=str_to_min(str1), str_to_min(str2)
+    
+    result=max(0,start+end)
+    
+    return min_to_str(result)
     
 # 초과근무 있는 경우 계획시간 만들기
 def overToPlan(overtime,data):
@@ -95,13 +112,17 @@ def overToPlan(overtime,data):
         plantime = over_start+'~'+over_end
     return plantime                                     #'0000~0000' or None
 
+def work_state_dic(row): # 하나의 row를 넘겨주면 fix, plan, std 등등의 정보를 6개의 변수로 나눠서 리턴해줌
+    temp_state=work_state(row['WORK_TYPE'])
+    temp_fix=sep_interval(row['FIX1'])
+    plan=sep_interval(row['PLAN1'])
+    std_start,std_end=temp_state['work_time'][0],temp_state['work_time'][1] # 기준근로시간 
+    fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
+    plan_start,plan_end=plan[0],plan[2] # 계획시간
+    return temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end
+
 # if __name__=="__main__":
-#     inout='0900~1800'
-#     plan='0900~1800'
-#     work_type='0030'
-    
-#     print(get_fixtime(inout, plan, work_type))
-    
+#     print(sub_time('0030','0060'))
 
 
     

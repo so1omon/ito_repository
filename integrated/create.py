@@ -49,7 +49,7 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
         emp_id=merge_table.loc[i,'EMP_ID']
         print(emp_id)
         target_in_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='IN')].sort_values(by='WORK_INFO_CLOCK', ascending=True).reset_index(drop=True)
-        target_out_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='out')].sort_values(by='WORK_INFO_CLOCK', ascending=False).reset_index(drop=True)
+        target_out_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='OUT')].sort_values(by='WORK_INFO_CLOCK', ascending=False).reset_index(drop=True)
         if len(target_in_table)!=0:   # 출근시간
             inout = target_in_table.loc[0, "WORK_INFO_CLOCK"]+inout
         
@@ -167,18 +167,16 @@ def setInOut(mem,merge_table,new_list):
                     
         
 def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최종결정
-    temp_state=lib.work_state(merge_table.loc[idx, "WORK_TYPE"])
-    temp_fix=lib.sep_interval(merge_table.loc[idx, "FIX1"])
-    plan=lib.sep_interval(merge_table.loc[idx, "PLAN1"])
-    std_start,std_end=temp_state['work_time'][0],temp_state['work_time'][1] # 기준근로시간 
-    fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
-    plan_start,plan_end=plan[0],plan[2] # 계획시간
+    
+    temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
     
     error=merge_table.loc[idx,"ERROR_INFO"]
     
     # 계획시간에 맞춰 컷하기
-    fix_start=max(fix_start, plan_start)
-    fix_end=min(fix_end, plan_end)
+    if fix_start!='':
+        fix_start=max(fix_start, plan_start)
+    if fix_end!='':        
+        fix_end=min(fix_end, plan_end)
     
     if temp_state["work_weekend"]: # 주말근무
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end]) # 앞단에서 잘 처리했기 때문에 그대로 리턴
@@ -208,22 +206,35 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
                     merge_table.at[idx,"ERROR_INFO"]='무단퇴근'
                     
         if fix_start=='' or fix_end =='':
-            merge_table.at[idx, "ERROR"]='출근 또는 퇴근 유실' 
+            merge_table.at[idx, "ERROR_INFO"]='출근 또는 퇴근 유실' 
             
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 
 def get_overtime(idx, merge_table):
-    cal_overtime_start='' # 앞단의 초과근무시간
-    cal_overtime_end=''
-    temp_fix=lib.sep_interval(merge_table.loc[idx, "FIX1"])
-    fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
+    cal_overtime_start=0 # 앞단의 초과근무시간
+    cal_overtime_end=0 # 뒷단의 초과근무시간
+    temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
+    omit_flag=0 # 누락건 있으면 1로 변경
+    #lib.min_to_str
+    #1. 앞단처리
+    if fix_start!='':
+        cal_overtime_start=lib.sub_time(std_start,fix_start)
+    else:
+        omit_flag=1
+    #2. 뒷단처리
+    if fix_end!='':
+        cal_overtime_end=lib.sub_time(std_end,fix_end)
+    else:
+        omit_flag=1
+        
+    result=min(lib.add_time(lib.min_to_str(cal_overtime_start),lib.min_to_str(cal_overtime_end)),'0400')
+    if temp_state["work_home"]==True: # 재택근무 시에는 초과근무 시간 0으로 설정
+        result='0000'
+    if (omit_flag==1) and (result!='0000'):
+        merge_table.at[idx, 'ERROR_INFO']=merge_table.loc[idx, 'ERROR_INFO']+', 누락 건에 대한 초과근무 시간 인정'
+    merge_table.at[idx, 'CAL_OVERTIME']=result
     
     
-    
-    #1. 양쪽 유실되었을 때
-    #2. 한쪽 유실되었을 때
-    #3. 정상적일 때 (ERROR_INFO 있을 때와 없을 때 나눠서)
-    
-    
+        
 
     

@@ -17,7 +17,7 @@ try:
                         db=mysqlinfo['db'], charset=mysqlinfo['charset'])       # mariadb 연동 정보입력
     cur=conn.cursor() #pymysql 커서
 
-    days_offset=0 # int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
+    days_offset=22 # int(input('몇일 전 데이터를 가져올까요?')) # (days_offset)일 전 데이터 가져오기
     now=datetime.now()
     that_moment=(now-timedelta(days=days_offset)).strftime('%Y%m%d')
 
@@ -765,14 +765,13 @@ try:
     idx=merge_table[merge_table['SHIFT_CD']=='None'].index
     merge_table.drop(idx, inplace=True)
     merge_table=merge_table.reset_index(drop=True)
-    parameters='%s,'*42
+    parameters='%s,'*27
+    target=merge_table[merge_table['EMP_ID']=='20150031']
+    print('20150031 정보\n', target['FIX1'])
 
-    print('2015026 정보', merge_table[merge_table['EMP_ID']=='20150026'])
-    print(merge_table.head(40))
-
-    for i in range(len(merge_table)):
-        sql=f"INSERT INTO good.ehr_cal_test2 values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
-        cur.execute(sql, list(merge_table.loc[i]))
+    # for i in range(len(merge_table)):
+    #     sql=f"INSERT INTO connect.ehr_cal values ({str(i+1)}, {parameters[:-1]})" #날짜별 NUM(사번연번) + 42개의 parameters
+    #     cur.execute(sql, list(merge_table.loc[i]))
 except Exception as e:
     print(e)
     traceback.print_exc()
