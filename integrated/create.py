@@ -34,7 +34,7 @@ def make_plan(merge_table):
             planTime = data["work_time"][0]+'~'+data["work_time"][1]
         
         if planTime == "None~None":
-            planTime = 'None';
+            planTime = 'None'
         merge_table.at[i,'PLAN1'] = planTime      #plan1 설정\
     return merge_table
     
