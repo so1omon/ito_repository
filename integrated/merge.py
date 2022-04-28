@@ -13,6 +13,10 @@ def origin_to_merge(origin_table, merge_table):
         rows_origin=origin_table.loc[idx] # origin table 1행
         
         cond_emp_id=merge_table['EMP_ID']==rows_origin['EMP_ID'] # 같은 사번을 가진 행 찾기
+        
+        if len(merge_table.loc[cond_emp_id])==0: #사번 정보가 없을 때는 패스
+            continue
+        
         merge_index=merge_table.loc[cond_emp_id,'EMP_ID'].keys()[0] #merge table과 사번 일치하는 행 인덱스넘버
         insert_flag=0 # 값이 삽입되었다는 것을 알리는 플래그. 1이 되면 string list 탐색을 중지하고 다음 origin table튜플을 탐색
         
@@ -71,7 +75,10 @@ def origin_to_merge(origin_table, merge_table):
             merge_table.at[merge_index, 'HOME_ID']=rows_origin['APPL_ID']
             
         elif rows_origin['TYPE']=='1004': #기타휴가 
-            merge_table.at[merge_index, 'ETC_INFO']=rows_origin['APPL_TXT']
+            if rows_origin['APPL_TXT']!=None:
+                merge_table.at[merge_index, 'ETC_INFO']=rows_origin['APPL_TXT']
+            else:
+                merge_table.at[merge_index, 'ETC_INFO']='정보 누락된 기타휴가 건'
             merge_table.at[merge_index, 'ETC_ID']=rows_origin['APPL_ID']
     return merge_table
 

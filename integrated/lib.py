@@ -29,7 +29,8 @@ work_type_dict={
     '0270':['0700','1600'],'0280':['0800','1700'],'0290':['0900','1800'],'0300':['1000','1900'],'0310':['0700','1500'],
     '0320':['0700','1400'],'0330':['0700','1300'],'0340':['0800','1600'],'0350':['0800','1500'],'0360':['0800','1400'],
     '0370':['0900','1700'],'0380':['0900','1600'],'0390':['0900','1500'],'0400':['1000','1800'],'0410':['1000','1700'],
-    '0420':['1000','1600'],'0430':['0900','1600'],'0440':['0800','1500'],'0450':['1000','1700']
+    '0420':['1000','1600'],'0430':['0900','1600'],'0440':['0800','1500'],'0450':['1000','1700'],'0021':['0830','1730'],
+    '0031':['0930','1830'],'0460':['0900','1600'],'0470':['0800','1500'],'0480':['1000','1700']
 }
 
 def work_state(work_type): # shift_cd와 work_type을 넣으면 근무시간, 재택근무여부, 주말여부를 알려줌
@@ -42,7 +43,7 @@ def work_state(work_type): # shift_cd와 work_type을 넣으면 근무시간, �
     result["work_time"]=work_type_dict[work_type]
     if(work_type=='0060'):
         result["work_weekend"]=True
-    elif(work_type>='0270' and work_type<='0420'):
+    elif(work_type>='0270' and work_type<='0420')or(work_type>='0460' and work_type<='0480') :
         result["work_home"]=True
     
     return result
@@ -86,9 +87,10 @@ def min_to_str(time): # 분 단위 정수값을 'xxxx' 4자리 시간 string으�
     return str(int(int(time)/60)).zfill(2)+str(int(int(time)%60)).zfill(2)
 
 def sub_time(str1, str2): # 'xxxx' 4자리 시간 string 2개를 받아서 그 차이를 리턴, 최솟값은 '0000'
+    if str1=='' or str2=='':
+        return '0000'
     start, end=str_to_min(str1), str_to_min(str2)
-    
-    result=max(0,start-end)
+    result=max(0,abs(start-end))
     
     return min_to_str(result)
 
@@ -119,6 +121,8 @@ def work_state_dic(row): # 하나의 row를 넘겨주면 fix, plan, std 등등�
     std_start,std_end=temp_state['work_time'][0],temp_state['work_time'][1] # 기준근로시간 
     fix_start,fix_end=temp_fix[0],temp_fix[2] # 출퇴근기록
     plan_start,plan_end=plan[0],plan[2] # 계획시간
+    if std_start=='None' and std_end=='None': # 주말근무일 경우 '~'로 리턴
+        std_start,std_end='',''
     return temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end
 
 # if __name__=="__main__":

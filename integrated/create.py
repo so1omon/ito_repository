@@ -49,7 +49,6 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
     for i in range(len(merge_table)):
         inout='~'
         emp_id=merge_table.loc[i,'EMP_ID']
-        print(emp_id)
         target_in_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='IN')].sort_values(by='WORK_INFO_CLOCK', ascending=True).reset_index(drop=True)
         target_out_table=inout_table[(inout_table["EMP_CODE"]==emp_id) & (inout_table["WORK_CD"]=='OUT')].sort_values(by='WORK_INFO_CLOCK', ascending=False).reset_index(drop=True)
         if len(target_in_table)!=0:   # 출근시간
@@ -111,10 +110,15 @@ def setInOut(mem,merge_table,new_list):
     work_state = lib.work_state(work_type)
     
     # new_list(출장,연차 리스트)의 유효성 판별
-    for i in range(len(new_list)):
-        if new_list[i][0]>work_state["work_time"][0] and new_list[i][1]<work_state["work_time"][1]:
+    len_new_list=len(new_list)
+    iter_new_list=0
+    while(iter_new_list<len(new_list)):
+        if new_list[iter_new_list][0]>work_state["work_time"][0] and new_list[iter_new_list][1]<work_state["work_time"][1]:
             # 유효하지 않은 출장,연차 정보인 경우 list에서 삭제
-            del new_list[i]
+            del new_list[iter_new_list]
+            iter_new_list=iter_new_list-1
+        iter_new_list=iter_new_list+1
+        
     list = new_list
     
 
@@ -180,9 +184,15 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
     
     # 계획시간에 맞춰 컷하기
     if fix_start!='':
-        fix_start=max(fix_start, plan_start)
-    if fix_end!='':        
-        fix_end=min(fix_end, plan_end)
+        if plan_start=='':
+            fix_start=''
+        else:
+            fix_start=max(fix_start, plan_start)
+    if fix_end!='':      
+        if plan_end=='':
+            fix_end=''  
+        else:
+            fix_end=min(fix_end, plan_end)
     
     if temp_state["work_weekend"]: # 주말근무
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end]) # 앞단에서 잘 처리했기 때문에 그대로 리턴
@@ -201,7 +211,7 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
                 merge_table.at[idx,"ERROR_INFO"]='지각'
         if fix_end!='':
             if fix_end>=std_end:
-                if lib.str_to_min(fix_end)<lib.str_to_min(std_end)-30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때   
+                if lib.str_to_min(fix_end)<lib.str_to_min(std_end)+30: # 출근시간이 기준 근로시작시간보다 30분 이상 선행되지 않을 때   
                     fix_end=std_end
                 else:
                     fix_end=min(fix_end, plan_end)
@@ -222,18 +232,26 @@ def get_overtime(idx, merge_table): # 초과근무시간 산정
     temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
     omit_flag=0 # 누락건 있으면 1로 변경
     #lib.min_to_str
-    #1. 앞단처리
-    if fix_start!='':
-        cal_overtime_start=lib.sub_time(std_start,fix_start)
+    
+    if temp_state['work_weekend']:# 주말이면 확정시간 그대로 차이값 계산
+        cal_overtime_start=lib.sub_time(fix_end,fix_start)
     else:
-        omit_flag=1
-    #2. 뒷단처리
-    if fix_end!='':
-        cal_overtime_end=lib.sub_time(std_end,fix_end)
-    else:
-        omit_flag=1
-        
-    result=min(lib.add_time(lib.min_to_str(cal_overtime_start),lib.min_to_str(cal_overtime_end)),'0400')
+        #1. 앞단처리
+        if fix_start!='':
+            cal_overtime_start=lib.sub_time(std_start,fix_start)
+        else:
+            omit_flag=1
+        #2. 뒷단처리
+        if fix_end!='':
+            cal_overtime_end=lib.sub_time(std_end,fix_end)
+        else:
+            omit_flag=1
+    if cal_overtime_start==0:
+        cal_overtime_start=lib.min_to_str(cal_overtime_start)
+    if cal_overtime_end==0:
+        cal_overtime_end=lib.min_to_str(cal_overtime_end)
+    
+    result=min(lib.add_time(cal_overtime_start,cal_overtime_end),'0400')
     if temp_state["work_home"]==True: # 재택근무 시에는 초과근무 시간 0으로 설정
         result='0000'
     if (omit_flag==1) and (result!='0000'):
@@ -252,13 +270,13 @@ def get_meal(idx, merge_table):
     if cond_1 or cond_2 or cond_3 or cond_4: # 4가지 조건 중 하나라도 만족하면 해당 행 작업 종료
         return
     
-    if (temp_state["work_weekend"]==True) and (merge_table.loc[idx, 'CAR_OVERTIME'] >= '0200'): # 주말근무일 때 2시간 이상이어야 TRUE
-        merge_table.at[idx, 'CAL_MEAL']='TRUE'
+    if (temp_state["work_weekend"]):
+        if (merge_table.loc[idx, 'CAL_OVERTIME'] >= '0200'): # 주말근무일 때 2시간 이상이어야 TRUE
+            merge_table.at[idx, 'CAL_MEAL']='TRUE'
+        else:
+            return
     
     # 급량비 조건 만족하는지 (기준근로시간 기준 출근이 한시간 빠르거나 )
     elif fix_start<=min(lib.sub_time(std_start,'0100'),'0800') or fix_end>=max(lib.add_time(std_end,'0100'),'1900'): 
         merge_table.at[idx, 'CAL_MEAL']='TRUE'
     # if (merge_table.loc[idx,'CAL_OVERTIME'])<'0100' or merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9
-    
-
-    

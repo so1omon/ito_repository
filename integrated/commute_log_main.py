@@ -16,8 +16,8 @@ today=''
 if os_name=='Windows':
     print('Commute log 생성 기간을 설정해주세요. 특정 날짜의 기록만 생성하려면 동일한 날짜를 입력해주세요.\n')
     while True:
-        interval_sta='20220428'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
-        interval_end='20220428'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_sta='20220103'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_end='20220427'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
         if lib.isDate(interval_sta, interval_end):
             print(f'{interval_sta}~{interval_end} 기록 생성')
             interval_sta=datetime.strptime(interval_sta,"%Y%m%d")
@@ -102,11 +102,8 @@ try:
         
         parameters='%s,'*28
         
-        mysql_cur.execute('truncate table good.ehr_cal_today')
-        
         for i in range(len(merge_table)):
-            print(list(merge_table.loc[i]))
-            sql=f"INSERT INTO good.ehr_cal_today values ({i+1},{parameters[:-1]})" #날짜별 NUM(사번연번) + 27개의 parameters
+            sql=f"INSERT INTO connect.ehr_cal values ({i+1},{parameters[:-1]})" #날짜별 NUM(사번연번) + 27개의 parameters
             mysql_cur.execute(sql, list(merge_table.loc[i]))
         
         # 급량비 지급여 부 판별 # <- 원래있던거 쓰기
