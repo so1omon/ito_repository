@@ -99,6 +99,8 @@ def findFreeTime(mem,merge_table):
         # 기타휴가가 있는 경우
         work_state = lib.work_state(merge_table.loc[mem,'WORK_TYPE'])
         work_time = lib.merge_interval(work_state["work_time"])
+        merge_table.at[mem,'DAYOFF1_TIME'] = work_time
+         
         time_list.append(work_time)
         
     return time_list
