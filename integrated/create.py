@@ -98,6 +98,9 @@ def findFreeTime(mem,merge_table):
         # 기타휴가가 있는 경우
         work_state = lib.work_state(merge_table.loc[mem,'WORK_TYPE'])
         work_time = lib.merge_interval(work_state["work_time"])
+        if work_state['work_weekend']:
+            return time_list
+        
         merge_table.at[mem,'DAYOFF1_TIME'] = work_time
          
         time_list.append(work_time)
@@ -110,10 +113,10 @@ def setInOut(mem,merge_table,new_list):
     work_state = lib.work_state(work_type)
     
     # new_list(출장,연차 리스트)의 유효성 판별
-    len_new_list=len(new_list)
+    
     iter_new_list=0
     while(iter_new_list<len(new_list)):
-        if new_list[iter_new_list][0]>work_state["work_time"][0] and new_list[iter_new_list][1]<work_state["work_time"][1]:
+        if lib.sep_interval(new_list[iter_new_list])[0]>work_state["work_time"][0] and lib.sep_interval(new_list[iter_new_list])[2]<work_state["work_time"][1]:
             # 유효하지 않은 출장,연차 정보인 경우 list에서 삭제
             del new_list[iter_new_list]
             iter_new_list=iter_new_list-1
@@ -155,8 +158,8 @@ def setInOut(mem,merge_table,new_list):
                     
             #  2개인 경우
             elif len(list)==2:
-                start_time = [list[i][0] for i in range(len(list))]         # start_time[0]='XXXX' start_time[1]='XXXX'
-                end_time = [list[i][2]for i in range(len(list))]     
+                start_time = [i[0] for i in map(lib.sep_interval, list)]          # start_time[0]='XXXX' start_time[1]='XXXX'
+                end_time = [i[2] for i in map(lib.sep_interval, list)]      
                 if end_time[0]>=in_time : 
                     in_time = min(in_time,start_time[0])
                     if out_time =='':
@@ -216,7 +219,7 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
                 else:
                     fix_end=min(fix_end, plan_end)
             else:
-                if error!='':
+                if error!='None':
                     merge_table.at[idx,"ERROR_INFO"]=error+', 무단퇴근'
                 else:
                     merge_table.at[idx,"ERROR_INFO"]='무단퇴근'
