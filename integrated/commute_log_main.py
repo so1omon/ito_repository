@@ -16,8 +16,8 @@ today=''
 if os_name=='Windows':
     print('Commute log 생성 기간을 설정해주세요. 특정 날짜의 기록만 생성하려면 동일한 날짜를 입력해주세요.\n')
     while True:
-        interval_sta='20220103'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
-        interval_end='20220427'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_sta='20220406'#input('commute log 생성 시작 기간을 설정해주세요. (YYYYMMDD)\n').strip()
+        interval_end='20220406'#input('commute log 생성 끝 기간을 설정해주세요. (YYYYMMDD)\n').strip()
         if lib.isDate(interval_sta, interval_end):
             print(f'{interval_sta}~{interval_end} 기록 생성')
             interval_sta=datetime.strptime(interval_sta,"%Y%m%d")
