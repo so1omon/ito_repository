@@ -144,15 +144,23 @@ def setInOut(mem,merge_table,new_list):
                 start_time = lib.sep_interval(list[0])[0]       #XXXX
                 end_time = lib.sep_interval(list[0])[2]         #XXXX
                 if start_time == work_state["work_time"][0] and end_time == work_state["work_time"][1]:
-                    # 전일 연차인 경우, fix1에 그대로 넣음
-                    in_out = lib.merge_interval([start_time,end_time])          
+                    # 전일 연차 or 출장인 경우, 
+                    if in_time=='':
+                        in_time = start_time
+                    else:
+                        in_time = min(in_time,start_time)
+                    out_time = max(out_time,end_time)
+                    in_out = lib.merge_interval([in_time,out_time])          
                 else:
-                    if in_time<=end_time:
+                    if out_time<=end_time:
                         in_time = min(in_time,start_time)
                         if out_time =='':
                             out_time = min(out_time,end_time)
                         else:
-                            out_time = max(out_time,end_time)
+                            if out_time<=end_time:
+                                out_time = out_time
+                            else:
+                                out_time = max(out_time,end_time)
                         in_out = lib.merge_interval([in_time,out_time])     
                 merge_table.at[mem,'FIX1']= in_out
                     
