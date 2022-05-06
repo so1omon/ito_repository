@@ -56,7 +56,7 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
         
         if len(target_out_table)!=0:   # 출근시간
             inout = inout+target_out_table.loc[0, "WORK_INFO_CLOCK"]
-        if merge_table.loc[i,'WORK_TYPE']=='0030': # 09~18 평일 근무자들은 기본값 09~18로 세팅
+        if (merge_table.loc[i,'WORK_TYPE']=='0030') or (merge_table.loc[i,'WORK_TYPE']=='0050'): # 09~18 평일 근무자들은 기본값 09~18로 세팅
             inout_start=lib.sep_interval(inout)[0]
             inout_end=lib.sep_interval(inout)[2]
             if inout_start=='' or inout_start>'0900':
