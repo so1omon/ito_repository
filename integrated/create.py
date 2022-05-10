@@ -238,6 +238,10 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 
 def get_overtime(idx, merge_table): # 초과근무시간 산정
+    # 2022-05-10 추가사항 : 임신기 근로단축은 일반근로시간만큼의 급여를 지급받기 때문에 초과근무를 계산할 떄
+    # {9시간(일반 근로시간) - 단축근무시간}만큼 초과근무시간에서 빼줘야 함. 이런 변경 사항에 따라
+    # 반영, 이에 따라 임신기 근로단축 (0430,0440,0450)에 해당하는 근태내역의 초과근무시간을 변경
+    
     cal_overtime_start=0 # 앞단의 초과근무시간
     cal_overtime_end=0 # 뒷단의 초과근무시간
     temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
@@ -267,6 +271,16 @@ def get_overtime(idx, merge_table): # 초과근무시간 산정
         result='0000'
     if (omit_flag==1) and (result!='0000'):
         merge_table.at[idx, 'ERROR_INFO']=merge_table.loc[idx, 'ERROR_INFO']+', 누락 건에 대한 초과근무 시간 인정'
+    
+    if merge_table.loc[idx, 'WORK_TYPE'] in ['0430','0440','0450']: # 2022-05-10 변경 (임신기근로단축)
+        work_interval_time=lib.sub_time(std_end,std_start) # 임신기단축근무 근로시간
+        work_interval_time_gap=lib.sub_time('0900',work_interval_time)
+        
+        if work_interval_time_gap>=result:
+            result='0000'
+        else:
+            result=lib.sub_time(result, work_interval_time_gap)
+    
     merge_table.at[idx, 'CAL_OVERTIME']=result
     
 def get_meal(idx, merge_table):

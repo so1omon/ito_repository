@@ -127,7 +127,7 @@ def work_state_dic(row): # 하나의 row를 넘겨주면 fix, plan, std 등등�
     return temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end
 
 if __name__=="__main__":
-    print(sorted(work_type_dict.items()))
+    print(sub_time('0000','0100'))
 
 
     
