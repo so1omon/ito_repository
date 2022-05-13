@@ -103,6 +103,7 @@ try:
         
         parameters='%s,'*28
         
+        print(len(merge_table))
         mysql_cur.execute('truncate table good.ehr_cal_today')
         
         for i in range(len(merge_table)):
