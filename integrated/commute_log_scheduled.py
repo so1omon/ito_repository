@@ -28,8 +28,8 @@ if os_name=='Windows':
         
 elif os_name=='Linux':
     os.environ["PATH"]='../instantclient_21_6'
-    interval_sta=datetime.now()-four_day
-    interval_end=datetime.now()-four_day
+    interval_sta=datetime.now()-timedelta(days=14)
+    interval_end=datetime.now()-one_day
     print(f"{interval_sta.strftime('%Y-%m-%d')}~{interval_end.strftime('%Y-%m-%d')} 기록 생성")
     
 else: # Windows나 리눅스가 아닐 때 강제 종료
@@ -48,6 +48,9 @@ try:
     mysql_conn=pymysql.connect(**db.pymysql_info)
     mysql_cur=mysql_conn.cursor() # mariadb 접속시 사용할 cursor
     print('MariDB access successfully!')
+    
+    start_day=interval_sta.strftime('%Y%m%d')
+    mysql_cur.execute(f'delete from connect.ehr_cal where ymd>={start_day}')
     
     while interval_sta<=interval_end: # 날짜별 루프 돌기
         
