@@ -157,8 +157,9 @@ def setInOut(mem,merge_table,new_list):
                         if out_time =='':
                             out_time = min(out_time,end_time)
                         else:
-                            if out_time<=end_time:
+                            if out_time<start_time: #  연차랑 관계 없는 케이스
                                 out_time = out_time
+                                
                             else:
                                 out_time = max(out_time,end_time)
                         in_out = lib.merge_interval([in_time,out_time])     

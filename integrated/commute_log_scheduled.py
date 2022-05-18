@@ -50,8 +50,10 @@ try:
     print('MariDB access successfully!')
     
     start_day=interval_sta.strftime('%Y%m%d')
-    mysql_cur.execute(f'delete from connect.ehr_cal where ymd>={start_day}')
-    
+    end_day=interval_end.strftime('%Y%m%d')
+    mysql_cur.execute(f'delete from connect.ehr_cal where ymd>={start_day} and ymd<={end_day}')
+    del start_day
+    del end_day
     while interval_sta<=interval_end: # 날짜별 루프 돌기
         
         today=interval_sta.strftime('%Y%m%d') # 루프가 돌아가는 일자
@@ -107,9 +109,9 @@ try:
         
         parameters='%s,'*28
         
-        for i in range(len(merge_table)):
-            sql=f"INSERT INTO connect.ehr_cal values ({i+1},{parameters[:-1]})" #날짜별 NUM(사번연번) + 27개의 parameters
-            mysql_cur.execute(sql, list(merge_table.loc[i]))
+        # for i in range(len(merge_table)):
+        #     sql=f"INSERT INTO connect.ehr_cal values ({i+1},{parameters[:-1]})" #날짜별 NUM(사번연번) + 27개의 parameters
+        #     mysql_cur.execute(sql, list(merge_table.loc[i]))
         
         # 급량비 지급여 부 판별 # <- 원래있던거 쓰기
 
