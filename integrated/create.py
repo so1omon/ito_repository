@@ -149,43 +149,76 @@ def setInOut(mem,merge_table,new_list):
                         in_time = start_time
                     else:
                         in_time = min(in_time,start_time)
-                    out_time = max(out_time,end_time)
-                    in_out = lib.merge_interval([in_time,out_time])          
+                    out_time = max(out_time,end_time)          
                 else:
-                    if out_time<=end_time:
-                        in_time = min(in_time,start_time)
-                        if out_time =='':
-                            out_time = min(out_time,end_time)
-                        else:
-                            if out_time<start_time: #  연차랑 관계 없는 케이스
-                                out_time = out_time
-                                
+                    # 전일 연차 , 출장 아닌 경우.
+                    # 1. in or out이 공백인 경우 error 처리
+                    if in_time=='' or out_time=='':
+                         merge_table.at[mem,'FIX1']= in_out
+                         return
+                    else:
+                        # 공백이 없는 경우
+                        # 1) 출장 정보가 inout 보다 앞에 있는 경우
+                        if end_time<=in_time:
+                            if end_time == in_time : 
+                                # 둘이 같은 경우 정상, 덮어씌워줌
+                                in_time = start_time
                             else:
-                                out_time = max(out_time,end_time)
-                        in_out = lib.merge_interval([in_time,out_time])     
+                                # end_time이 in_time 보다 작은 경우, 공백이 생김 ->error
+                                merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
+                        else:
+                            # end_time>in_time인 경우?
+                            # 1) 츌장 정보 inout 보다 앞에 있고, 출장 끝 시간 전에 in 찍은 경우(정상) in_time 덮어씌어줌 
+                            if start_time<=in_time:
+                                in_time = start_time
+                            # 2) 출장 정보가 inout 뒷단에 있는 경우 : out_time과 출장 정보 비교
+                            else:
+                                # start_time>in_time
+                                if out_time<start_time:
+                                    # 퇴근시간이 출장 시작 시간보다 빠른 경우, 공백이 생김
+                                    merge_table.at[mem,'ERROR_INFO']='출장or연차 전 공백'
+                                else:
+                                    # start_time>in_time 이고 out_time>=start_time인 경우 - 정상 
+                                    out_time = max(out_time,end_time)
+                                     
+                in_out = lib.merge_interval([in_time,out_time])     
                 merge_table.at[mem,'FIX1']= in_out
                     
             #  2개인 경우
             elif len(list)==2:
                 start_time = [i[0] for i in map(lib.sep_interval, list)]          # start_time[0]='XXXX' start_time[1]='XXXX'
-                end_time = [i[2] for i in map(lib.sep_interval, list)]      
-                if end_time[0]>=in_time : 
-                    in_time = min(in_time,start_time[0])
-                    if out_time =='':
-                        # 공백인 경우 그대로 공백 
-                        out_time = min(out_time,end_time[1])
-                    else:
-                        # 공백이 아닌 경우, out_time이 start_time[1] 보다 늦어야 함.
-                        if out_time>=start_time[1]:
-                            out_time = max(out_time,end_time[1])
-                        else:
-                            #  공백이 아닌 경우, out time이 start_time[1] 보다 빠르면  out_time 그대로 
-                            out_time = out_time
-                    in_out = lib.merge_interval([in_time,out_time])
+                end_time = [i[2] for i in map(lib.sep_interval, list)] 
+                
+                # in or out에 공백있는 경우 return
+                if in_time=='' or out_time=='':
                     merge_table.at[mem,'FIX1']= in_out
+                    return
                 else:
-                    merge_table.at[mem,'FIX1']= in_out
-                # 아닌 경우 error 처리
+                    # 첫번째 출장 정보가 앞단에 있는 경우
+                    if end_time[0]<in_time:
+                        # 첫번째 출장정보의 end_time이 in_time보다 작은 경우, 공백이 생김 ->error (return하지 말고 덮어씌우지말고)
+                        merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
+                    else:
+                        # end_time[0]>=in_time인 경우
+                        in_time = min(start_time[0],in_time)
+                        
+                        # 두번째 출장정보와 비교   
+                        # start_time[1]>=out_time
+                        if start_time[1]>=out_time:
+                            if start_time[1]==out_time:
+                                # 정상, 덮어씌워줌
+                                out_time = end_time[1]
+                            else:
+                                # start_time[1]>out_time인 경우
+                                # 두번째 출장정보가 out_time 보다 늦게 있으면, 공백이 생김 
+                                merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
+                        else:
+                            # start_time[1]<out_time 
+                            out_time = max(end_time[1],out_time)
+                            
+                in_out = lib.merge_interval([in_time,out_time])     
+                merge_table.at[mem,'FIX1']= in_out           
+                    
                     
         
 def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최종결정
@@ -259,7 +292,7 @@ def get_overtime(idx, merge_table): # 초과근무시간 산정
             omit_flag=1
         #2. 뒷단처리
         if fix_end!='':
-            cal_overtime_end=lib.sub_time(std_end,fix_end)
+            cal_overtime_end=lib.sub_time(fix_end,std_end)
         else:
             omit_flag=1
     if cal_overtime_start==0:
@@ -268,7 +301,7 @@ def get_overtime(idx, merge_table): # 초과근무시간 산정
         cal_overtime_end=lib.min_to_str(cal_overtime_end)
     
     result=min(lib.add_time(cal_overtime_start,cal_overtime_end),'0400')
-    if temp_state["work_home"]==True: # 재택근무 시에는 초과근무 시간 0으로 설정
+    if (temp_state["work_home"]==True) or (merge_table.loc[idx, "REWARD_TIME"]!='None'): # 재택근무 시에는 초과근무 시간 0으로 설정
         result='0000'
     if (omit_flag==1) and (result!='0000'):
         merge_table.at[idx, 'ERROR_INFO']=merge_table.loc[idx, 'ERROR_INFO']+', 누락 건에 대한 초과근무 시간 인정'

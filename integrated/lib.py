@@ -88,7 +88,7 @@ def min_to_str(time): # 분 단위 정수값을 'xxxx' 4자리 시간 string으�
     return str(int(int(time)/60)).zfill(2)+str(int(int(time)%60)).zfill(2)
 
 def sub_time(str1, str2): # 'xxxx' 4자리 시간 string 2개를 받아서 그 차이를 리턴, 최솟값은 '0000'
-    if str1=='' or str2=='':
+    if (str1=='') or (str2=='') or (str1<str2):
         return '0000'
     start, end=str_to_min(str1), str_to_min(str2)
     result=max(0,abs(start-end))
