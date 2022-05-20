@@ -49,10 +49,12 @@ try:
     fisrt_table=first_table.reset_index(inplace=True, drop=True)
     
     parameters='%s,'*10
-        
+    
+    mysql_cur.execute('truncate table connect.gw_ehr_con')
+    
     for i in range(len(first_table)):
         print(list(map(str,list(first_table.loc[i]))))
-        sql=f"INSERT INTO connect.gw_ehr_con values({parameters[:-1]})" #날짜별 NUM(사번연번) + 27개의 parameters
+        sql=f"INSERT INTO connect.gw_ehr_con values({parameters[:-2]})" #날짜별 NUM(사번연번) + 27개의 parameters
         mysql_cur.execute(sql, list(map(str,list(first_table.loc[i]))))
 
 except Exception as e:
