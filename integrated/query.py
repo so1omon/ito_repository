@@ -115,3 +115,11 @@ LEFT JOIN (
 ) I ON A.EMP_ID = I.EMP_ID
 WHERE NOT B.EMP_ID is NULL
 """
+
+pymysql_get_ehr_con_sql='''
+    SELECT emp_id, `NAME`, SUM(
+        CASE WHEN cal_overtime!='0000' then cast(cast(cal_overtime AS INT)/100 as int)*60 + 
+        mod(cast(cal_overtime AS INT), 100) ELSE 0 END) 
+    AS TOTAL_OVERTIME FROM connect.ehr_cal 
+    WHERE ymd>={0} AND ymd<={1} GROUP BY emp_id, `NAME`;
+'''

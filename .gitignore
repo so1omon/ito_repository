@@ -12,3 +12,4 @@ test.py
 *.ipynb
 ../.vscode/
 data/
+*.zip

@@ -126,6 +126,16 @@ def work_state_dic(row): # 하나의 row를 넘겨주면 fix, plan, std 등등�
         std_start,std_end='',''
     return temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end
 
+def last_day_of_month(any_day):
+    next_month = any_day.replace(day=28) + datetime.timedelta(days=4)  # this will never fail
+    return (next_month - datetime.timedelta(days=next_month.day)).strftime('%Y%m%d')
+
+def first_day_of_month(any_day):
+    return any_day.replace(day=1).strftime('%Y%m%d')
+
+def month_interval(any_day):
+    return [ first_day_of_month(any_day),last_day_of_month(any_day)]
+
 if __name__=="__main__":
     print(sub_time('0000','0100'))
 
