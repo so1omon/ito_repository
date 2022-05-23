@@ -106,7 +106,7 @@ def add_time(str1, str2): # 'xxxx' 4자리 시간 string 2개를 받아서 그 �
 def overToPlan(overtime,data):
     over_start, over_end = overtime.split('~')
     # 초과근무 시간이 기존근로시간 벗어난 경우 plantime = 'None'
-    if over_start>=data['work_time'][1]:
+    if over_start>data['work_time'][1]:
         plantime='None'
         
     else:

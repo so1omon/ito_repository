@@ -18,7 +18,6 @@ def make_plan(merge_table):
         data = lib.work_state(work_type)        # {work_time,work_home,work_weekend}
         if overtime != 'None':
             # 초과근무시간이 있는 경우 OverToPlan 함수 적용
-            
             planTime = lib.overToPlan(overtime,data)
             if planTime == 'None':
                 # error처리, fix1='None'처리
@@ -35,7 +34,7 @@ def make_plan(merge_table):
         
         if planTime == "None~None":
             planTime = 'None'
-        merge_table.at[i,'PLAN1'] = planTime      #plan1 설정\
+        merge_table.at[i,'PLAN1'] = planTime      #plan1 설정
     return merge_table
     
     
@@ -111,6 +110,7 @@ def setInOut(mem,merge_table,new_list):
     in_out = merge_table.at[mem,'INOUT']        #in_out : 
     work_type = merge_table.loc[mem,'WORK_TYPE']
     work_state = lib.work_state(work_type)
+    plan_time = merge_table.at[mem,'PLAN1']
     
     # new_list(출장,연차 리스트)의 유효성 판별
     
@@ -138,13 +138,15 @@ def setInOut(mem,merge_table,new_list):
             #연차,출장 정보 있으면 덮어씌우기
             in_time = lib.sep_interval(in_out)[0]
             out_time = lib.sep_interval(in_out)[2]
+            plan_start = lib.sep_interval(plan_time)[0]
+            plan_end = lib.sep_interval(plan_time)[2]
             
             #  1개인 경우
             if len(list)==1:
                 start_time = lib.sep_interval(list[0])[0]       #XXXX
                 end_time = lib.sep_interval(list[0])[2]         #XXXX
+                # 전일 연차 or 출장인 경우, 
                 if start_time == work_state["work_time"][0] and end_time == work_state["work_time"][1]:
-                    # 전일 연차 or 출장인 경우, 
                     if in_time=='':
                         in_time = start_time
                     else:
@@ -152,70 +154,63 @@ def setInOut(mem,merge_table,new_list):
                     out_time = max(out_time,end_time)          
                 else:
                     # 전일 연차 , 출장 아닌 경우.
-                    # 1. in or out이 공백인 경우 error 처리
-                    if in_time=='' or out_time=='':
-                         merge_table.at[mem,'FIX1']= in_out
-                         return
-                    else:
-                        # 공백이 없는 경우
-                        # 1) 출장 정보가 inout 보다 앞에 있는 경우
-                        if end_time<=in_time:
-                            if end_time == in_time : 
-                                # 둘이 같은 경우 정상, 덮어씌워줌
-                                in_time = start_time
-                            else:
-                                # end_time이 in_time 보다 작은 경우, 공백이 생김 ->error
-                                merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
+                    # 1. 연차, 출장이 앞단인지 뒷단인지 확인
+                    if end_time<plan_end:
+                        # 앞단인 경우
+                        if in_time == '':
+                            in_time = start_time
                         else:
-                            # end_time>in_time인 경우?
-                            # 1) 츌장 정보 inout 보다 앞에 있고, 출장 끝 시간 전에 in 찍은 경우(정상) in_time 덮어씌어줌 
-                            if start_time<=in_time:
-                                in_time = start_time
-                            # 2) 출장 정보가 inout 뒷단에 있는 경우 : out_time과 출장 정보 비교
-                            else:
-                                # start_time>in_time
-                                if out_time<start_time:
-                                    # 퇴근시간이 출장 시작 시간보다 빠른 경우, 공백이 생김
-                                    merge_table.at[mem,'ERROR_INFO']='출장or연차 전 공백'
-                                else:
-                                    # start_time>in_time 이고 out_time>=start_time인 경우 - 정상 
-                                    out_time = max(out_time,end_time)
-                                     
+                            in_time = min(in_time,start_time)
+                        out_time = max(out_time,end_time)
+                    else:
+                        # 뒷단인 경우 , in_time이 공백이라면 그대로 놔둠
+                        if in_time!='':
+                            in_time = min(in_time,start_time)
+                        out_time = max(out_time,end_time)
+                    
                 in_out = lib.merge_interval([in_time,out_time])     
                 merge_table.at[mem,'FIX1']= in_out
+                
+                    # else:
+                    #     # 공백이 없는 경우
+                    #     # 1) 출장 정보가 inout 보다 앞에 있는 경우
+                        
+                    #     if end_time<=in_time:
+                    #         if end_time == in_time : 
+                    #             # 둘이 같은 경우 정상, 덮어씌워줌
+                    #             in_time = start_time
+                    #         else:
+                    #             # end_time이 in_time 보다 작은 경우, 공백이 생김 ->error
+                    #             merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
+                    #     else:
+                    #         # end_time>in_time인 경우?
+                    #         # 1) 츌장 정보 inout 보다 앞에 있고, 출장 끝 시간 전에 in 찍은 경우(정상) in_time 덮어씌어줌 
+                    #         if start_time<=in_time:
+                    #             in_time = start_time
+                    #         # 2) 출장 정보가 inout 뒷단에 있는 경우 : out_time과 출장 정보 비교
+                    #         else:
+                    #             # start_time>in_time
+                    #             if out_time<start_time:
+                    #                 # 퇴근시간이 출장 시작 시간보다 빠른 경우, 공백이 생김
+                    #                 merge_table.at[mem,'ERROR_INFO']='출장or연차 전 공백'
+                    #             else:
+                    #                 # start_time>in_time 이고 out_time>=start_time인 경우 - 정상 
+                    #                 out_time = max(out_time,end_time)
+                                     
+                
                     
             #  2개인 경우
             elif len(list)==2:
                 start_time = [i[0] for i in map(lib.sep_interval, list)]          # start_time[0]='XXXX' start_time[1]='XXXX'
                 end_time = [i[2] for i in map(lib.sep_interval, list)] 
                 
-                # in or out에 공백있는 경우 return
-                if in_time=='' or out_time=='':
-                    merge_table.at[mem,'FIX1']= in_out
-                    return
+                # in or out에 공백있는 경우
+                if in_time=='':
+                    in_time = start_time[0]
                 else:
-                    # 첫번째 출장 정보가 앞단에 있는 경우
-                    if end_time[0]<in_time:
-                        # 첫번째 출장정보의 end_time이 in_time보다 작은 경우, 공백이 생김 ->error (return하지 말고 덮어씌우지말고)
-                        merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
-                    else:
-                        # end_time[0]>=in_time인 경우
-                        in_time = min(start_time[0],in_time)
-                        
-                        # 두번째 출장정보와 비교   
-                        # start_time[1]>=out_time
-                        if start_time[1]>=out_time:
-                            if start_time[1]==out_time:
-                                # 정상, 덮어씌워줌
-                                out_time = end_time[1]
-                            else:
-                                # start_time[1]>out_time인 경우
-                                # 두번째 출장정보가 out_time 보다 늦게 있으면, 공백이 생김 
-                                merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
-                        else:
-                            # start_time[1]<out_time 
-                            out_time = max(end_time[1],out_time)
-                            
+                    in_time = min(in_time,start_time[0])
+                out_time = max(out_time,end_time[1])
+                       
                 in_out = lib.merge_interval([in_time,out_time])     
                 merge_table.at[mem,'FIX1']= in_out           
                     
