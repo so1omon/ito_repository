@@ -221,6 +221,32 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
     temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
     
     error=merge_table.loc[idx,"ERROR_INFO"]
+    # '~'
+    #1. 출근만 빌때
+    if merge_table.loc[idx, 'PLAN1']!='None':
+        if(fix_start=='' and fix_end!=''):
+            if fix_end<=plan_start:
+                if(error!='None'):
+                    merge_table.at[idx, "ERROR_INFO"]=error+', 출퇴근시간 오류'
+                else:
+                    merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
+                return
+        #2. 퇴근만 빌때
+        elif(fix_start!='' and fix_end==''):
+            if fix_start>=plan_end:
+                if(error!='None'):
+                    merge_table.at[idx, "ERROR_INFO"]=error+', 출퇴근시간 오류'
+                else:
+                    merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
+                return
+        #4. 둘다안빌때
+        elif(fix_start!='' and fix_end!=''):
+            if (fix_start>=plan_end) or (fix_end<=plan_start):
+                if(error!='None'):
+                    merge_table.at[idx, "ERROR_INFO"]=error+', 출퇴근시간 오류'
+                else:
+                    merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
+                return
     
     # 계획시간에 맞춰 컷하기
     if fix_start!='':
@@ -263,7 +289,8 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
                     
         if fix_start=='' or fix_end =='':
             merge_table.at[idx, "ERROR_INFO"]='출근 또는 퇴근 유실' 
-        if fix_start>=fix_end:
+            merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
+        elif fix_start>=fix_end:
             merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
             merge_table.at[idx,"FIX1"]="ERROR"
         else:
