@@ -101,7 +101,7 @@ try:
         # # 확정시간 만들기 # <- 공동작업
         merge_table = create.make_fix(merge_table)
         
-        parameters='%s,'*28
+        parameters='%s, '*28
         
         mysql_cur.execute('truncate table good.ehr_cal_today')
         
