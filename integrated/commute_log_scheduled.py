@@ -107,10 +107,11 @@ try:
         # # 확정시간 만들기 # <- 공동작업
         merge_table = create.make_fix(merge_table)
         
-        parameters='%s,'*28
+        parameters='%s, '*28
         
         for i in range(len(merge_table)):
             sql=f"INSERT INTO connect.ehr_cal values ({i+1},{parameters[:-2]})" #날짜별 NUM(사번연번) + 27개의 parameters
+            print(sql)
             mysql_cur.execute(sql, list(merge_table.loc[i]))
         
         # 급량비 지급여 부 판별 # <- 원래있던거 쓰기
