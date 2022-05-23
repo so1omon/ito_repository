@@ -301,7 +301,7 @@ def get_overtime(idx, merge_table): # 초과근무시간 산정
         cal_overtime_end=lib.min_to_str(cal_overtime_end)
     
     result=min(lib.add_time(cal_overtime_start,cal_overtime_end),'0400')
-    if (temp_state["work_home"]==True) or (merge_table.loc[idx, "REWARD_TIME"]!='None'): # 재택근무 시에는 초과근무 시간 0으로 설정
+    if (temp_state["work_home"]==True) or (merge_table.loc[idx, 'REWARD_ID']=='400'): # 재택근무/대체휴일 시에는 초과근무 시간 0으로 설정
         result='0000'
     if (omit_flag==1) and (result!='0000'):
         merge_table.at[idx, 'ERROR_INFO']=merge_table.loc[idx, 'ERROR_INFO']+', 누락 건에 대한 초과근무 시간 인정'
