@@ -263,8 +263,11 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
                     
         if fix_start=='' or fix_end =='':
             merge_table.at[idx, "ERROR_INFO"]='출근 또는 퇴근 유실' 
-            
-        merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
+        if fix_start>=fix_end:
+            merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
+            merge_table.at[idx,"FIX1"]="ERROR"
+        else:
+            merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 
 def get_overtime(idx, merge_table): # 초과근무시간 산정
     # 2022-05-10 추가사항 : 임신기 근로단축은 일반근로시간만큼의 급여를 지급받기 때문에 초과근무를 계산할 떄
