@@ -221,44 +221,28 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
     temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
     
     error=merge_table.loc[idx,"ERROR_INFO"]
-    # '~'
-    #1. 출근만 빌때
-    if merge_table.loc[idx, 'PLAN1']!='None':
-        if(fix_start=='' and fix_end!=''):
-            if fix_end<=plan_start:
-                if(error!='None'):
-                    merge_table.at[idx, "ERROR_INFO"]=error+', 출퇴근시간 오류'
-                else:
-                    merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
-                return
-        #2. 퇴근만 빌때
-        elif(fix_start!='' and fix_end==''):
-            if fix_start>=plan_end:
-                if(error!='None'):
-                    merge_table.at[idx, "ERROR_INFO"]=error+', 출퇴근시간 오류'
-                else:
-                    merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
-                return
-        #4. 둘다안빌때
-        elif(fix_start!='' and fix_end!=''):
-            if (fix_start>=plan_end) or (fix_end<=plan_start):
-                if(error!='None'):
-                    merge_table.at[idx, "ERROR_INFO"]=error+', 출퇴근시간 오류'
-                else:
-                    merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
-                return
     
     # 계획시간에 맞춰 컷하기
     if fix_start!='':
         if plan_start=='':
             fix_start=''
         else:
-            fix_start=max(fix_start, plan_start)
+            if fix_end!='':
+                if(plan_end<=fix_start) or (plan_start>=fix_end):
+                    fix_start=''
+                    fix_end=''
+                else:
+                    fix_start=max(fix_start, plan_start)
     if fix_end!='':      
         if plan_end=='':
             fix_end=''  
         else:
-            fix_end=min(fix_end, plan_end)
+            if fix_start!='':
+                if(plan_end<=fix_start) or (plan_start>=fix_end):
+                    fix_start=''
+                    fix_end=''
+                else:
+                    fix_end=min(fix_end, plan_end)
     
     if temp_state["work_weekend"]: # 주말근무
         merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end]) # 앞단에서 잘 처리했기 때문에 그대로 리턴
@@ -289,12 +273,8 @@ def get_fixtime(idx, merge_table): # 출장, 연차 처리 후 확정 시간 최
                     
         if fix_start=='' or fix_end =='':
             merge_table.at[idx, "ERROR_INFO"]='출근 또는 퇴근 유실' 
-            merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
-        elif fix_start>=fix_end:
-            merge_table.at[idx, "ERROR_INFO"]='출퇴근시간 오류'
-            merge_table.at[idx,"FIX1"]="ERROR"
-        else:
-            merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
+            
+        merge_table.at[idx,"FIX1"]=lib.merge_interval([fix_start, fix_end])
 
 def get_overtime(idx, merge_table): # 초과근무시간 산정
     # 2022-05-10 추가사항 : 임신기 근로단축은 일반근로시간만큼의 급여를 지급받기 때문에 초과근무를 계산할 떄
