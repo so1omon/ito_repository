@@ -145,6 +145,11 @@ def setInOut(mem,merge_table,new_list):
             if len(list)==1:
                 start_time = lib.sep_interval(list[0])[0]       #XXXX
                 end_time = lib.sep_interval(list[0])[2]         #XXXX
+                
+                #work type 60이고 plan이 None이 아니면 
+                if work_state["work_weekend"] and plan_time!='None':
+                    work_state["work_time"]=[plan_start, plan_end]
+
                 # 전일 연차 or 출장인 경우, 
                 if start_time == work_state["work_time"][0] and end_time == work_state["work_time"][1]:
                     if in_time=='':
@@ -171,31 +176,6 @@ def setInOut(mem,merge_table,new_list):
                 in_out = lib.merge_interval([in_time,out_time])     
                 merge_table.at[mem,'FIX1']= in_out
                 
-                    # else:
-                    #     # 공백이 없는 경우
-                    #     # 1) 출장 정보가 inout 보다 앞에 있는 경우
-                        
-                    #     if end_time<=in_time:
-                    #         if end_time == in_time : 
-                    #             # 둘이 같은 경우 정상, 덮어씌워줌
-                    #             in_time = start_time
-                    #         else:
-                    #             # end_time이 in_time 보다 작은 경우, 공백이 생김 ->error
-                    #             merge_table.at[mem,'ERROR_INFO']='출장or연차 후 공백'
-                    #     else:
-                    #         # end_time>in_time인 경우?
-                    #         # 1) 츌장 정보 inout 보다 앞에 있고, 출장 끝 시간 전에 in 찍은 경우(정상) in_time 덮어씌어줌 
-                    #         if start_time<=in_time:
-                    #             in_time = start_time
-                    #         # 2) 출장 정보가 inout 뒷단에 있는 경우 : out_time과 출장 정보 비교
-                    #         else:
-                    #             # start_time>in_time
-                    #             if out_time<start_time:
-                    #                 # 퇴근시간이 출장 시작 시간보다 빠른 경우, 공백이 생김
-                    #                 merge_table.at[mem,'ERROR_INFO']='출장or연차 전 공백'
-                    #             else:
-                    #                 # start_time>in_time 이고 out_time>=start_time인 경우 - 정상 
-                    #                 out_time = max(out_time,end_time)
                                      
                 
                     
