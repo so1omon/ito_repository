@@ -29,7 +29,7 @@ elif os_name=='Linux':
     os.environ["PATH"]='../instantclient_21_6'
     interval_sta=datetime.now()
     interval_end=datetime.now()
-    print(f"{interval_sta.strftime('%Y-%m-%d')}~{interval_end.strftime('%Y-%m-%d')} 기록 생성")
+    print(f"{interval_sta} 기록 생성")
     
 else: # Windows나 리눅스가 아닐 때 강제 종료
     print('Unknown OS version. \nProgram exit')
