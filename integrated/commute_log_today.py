@@ -48,6 +48,13 @@ try:
     mysql_cur=mysql_conn.cursor() # mariadb 접속시 사용할 cursor
     print('MariDB access successfully!')
     
+    start_day=interval_sta.strftime('%Y%m%d')
+    end_day=interval_end.strftime('%Y%m%d')
+    mysql_cur.execute(f'truncate table good.ehr_cal_today')
+    
+    mysql_cur.execute(query.pymysql_get_exceptions_emp_id_sql) # 3급 이상 또는 4급 팀장 정보 가져오기
+    exception_list= [i[0] for i in list(mysql_cur.fetchall())] 
+        
     while interval_sta<=interval_end: # 날짜별 루프 돌기
         
         today=interval_sta.strftime('%Y%m%d') # 루프가 돌아가는 일자
@@ -99,17 +106,14 @@ try:
         # 기록기시간 만들기 # <- 김솔민
         merge_table=create.insert_inout(today,merge_table, mysql_cur)
         # # 확정시간 만들기 # <- 공동작업
-        merge_table = create.make_fix(merge_table)
+        merge_table = create.make_fix(merge_table,exception_list)
         
         parameters='%s, '*28
-        
-        mysql_cur.execute('truncate table good.ehr_cal_today')
         
         for i in range(len(merge_table)):
             sql=f"INSERT INTO good.ehr_cal_today values ({i+1},{parameters[:-2]})" #날짜별 NUM(사번연번) + 27개의 parameters
             mysql_cur.execute(sql, list(merge_table.loc[i]))
         
-        # 급량비 지급여 부 판별 # <- 원래있던거 쓰기
 
 except Exception as e:
     print(e)
