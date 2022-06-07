@@ -69,8 +69,8 @@ LEFT JOIN (
 ) D ON A.EMP_ID = D.EMP_ID
 LEFT JOIN (
     WITH Z as(
-         select emp_id as EMP_ID, ymd, SUM(CASE WHEN D_H_TYPE='H' THEN floor(((MOD((VAL*10),10)*10)+(VAL*10-(MOD((VAL*10),10)))*6)/60)+MOD(((MOD((VAL*10),10)*10)+(VAL*10-(MOD((VAL*10),10)))*6),60)/100
- ELSE 0 END)+COUNT(CASE WHEN D_H_TYPE='D' THEN '1' END)*8 AS TOTAL 
+         select emp_id as EMP_ID, ymd, SUM(CASE WHEN D_H_TYPE='H' THEN floor(((MOD((VAL*10),10)*10)+(VAL*10-(MOD((VAL*10),10)))*6)/60)+MOD(((MOD((VAL*10),10)*10)+(VAL*10-(MOD((VAL*10),10)))*6),60)/100 
+         ELSE to_number((CASE WHEN (substr((END_HM-STA_HM),1,1))>'1' THEN '8' ELSE (substr((END_HM-STA_HM),1,1))END)) END) AS TOTAL 
         from ehr2011060.tam5450
         WHERE ATTEND_CD = '0001' AND DEL_YN = 'N'
         group by emp_id, ymd
@@ -87,7 +87,7 @@ LEFT JOIN (
         )B on Z.EMP_ID = B.B_EMP_ID AND Z.YMD>=B.USE_STA_YMD AND Z.YMD<=B.USE_END_YMD GROUP BY EMP_ID
     UNION
     (SELECT EMP_ID,
-    SUM(CASE WHEN D_H_TYPE='H' THEN VAL ELSE 0 END)+COUNT(CASE WHEN D_H_TYPE='D' THEN '1' END)*8 AS VAL
+    SUM(CASE WHEN D_H_TYPE='H' THEN VAL ELSE to_number((CASE WHEN (substr((END_HM-STA_HM),1,1))>'1' THEN '8' ELSE (substr((END_HM-STA_HM),1,1))END)) END) AS VAL
     FROM EHR2011060.TAM5450 
     WHERE ATTEND_CD = '0001' AND DEL_YN = 'N' AND (SUBSTR(EMP_ID,5,1)='4' OR SUBSTR(EMP_ID,5,1)='5' )  
     GROUP BY EMP_ID)
