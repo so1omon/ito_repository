@@ -123,3 +123,9 @@ pymysql_get_ehr_con_sql='''
     AS TOTAL_OVERTIME FROM connect.ehr_cal 
     WHERE ymd>={0} AND ymd<={1} GROUP BY emp_id, `NAME`;
 '''
+
+pymysql_get_exceptions_emp_id_sql='''
+    SELECT emp_id FROM connect.hr_info 
+        WHERE (emp_grade_nm = '4급' AND duty_nm='팀장') 
+        OR (EMP_GRADE_NM in ('1급', '2급', '3급'))
+'''

@@ -1,12 +1,15 @@
+from logging import exception
 from numpy import size
 import pandas as pd
 import lib
 import db
+import query
+import pymysql
+
+
 
 
 # 계획시간(plan1,plan2) 설정하는 함수
-
-
 
 def make_plan(merge_table):
     for i in range(len(merge_table)):
@@ -69,7 +72,7 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
     return merge_table
     
 
-def make_fix(merge_table): # 확정시간 만들기
+def make_fix(merge_table, exception_list): # 확정시간 만들기
     for mem in range(len(merge_table)):
         time_list=[]
         time_list = findFreeTime(mem,merge_table)   # 각 사원의 연차 출장 정보 list
@@ -77,7 +80,7 @@ def make_fix(merge_table): # 확정시간 만들기
         setInOut(mem,merge_table,new_list)             # inout 시간 확정        
         get_fixtime(mem, merge_table)
         get_overtime(mem, merge_table)
-        get_meal(mem, merge_table)
+        get_meal(mem, merge_table, exception_list)
     return merge_table
         
 # findFreeTime(merge_table) : 해당 사원의 연차 출장 정보 list 리턴 함수
@@ -302,25 +305,54 @@ def get_overtime(idx, merge_table): # 초과근무시간 산정
     
     merge_table.at[idx, 'CAL_OVERTIME']=result
     
-def get_meal(idx, merge_table):
+def get_meal(idx, merge_table, exception_list):
     merge_table.at[idx, 'CAL_MEAL']='FALSE'
     temp_state,std_start,std_end,fix_start,fix_end,plan_start,plan_end=lib.work_state_dic(merge_table.loc[idx])
     
     cond_1=merge_table.loc[idx,'CAL_OVERTIME']<'0100' # 초과근무 시간이 한시간 미만이면 급량비 산정 FALSE
     cond_2=merge_table.loc[idx,'FIX1']=='ERROR' # 잘못된 정보 들어가있으면 급량비 산정 FALSE
-    cond_3=len(merge_table.loc[idx,'FIX1'])!=9 # 잘못된 정보 들어가있으면 급량비 산정 FALSE -> 출퇴근 한쪽만 충족할 경우 물어보기
-    cond_4=temp_state["work_home"]==True # 재택근무이면 초과근무 0시간이므로 급량비 산정 FALSE
+    cond_3=(fix_start=='') and (fix_end=='') # 출퇴근 모두 비어있으면 급량비 산정 FALSE -> 출퇴근 한쪽만 충족할 경우 물어보기
+    cond_4=temp_state["work_home"]==True # 재택근무이면 초과근무 0시간이므로 급량비 산정 FALSE     
+    cond_5=merge_table.loc[idx,'INOUT']=='~'# exception_list용 조건, 출퇴근 모두 비어있으면 끝
     
-    if cond_1 or cond_2 or cond_3 or cond_4: # 4가지 조건 중 하나라도 만족하면 해당 행 작업 종료
+    if merge_table.loc[idx, 'EMP_ID'] in exception_list: # 3급 이상, 4급 팀장에 대한 예외 처리 -> 출퇴근 기준으로 보기
+        if cond_2 or cond_3 or cond_4 or cond_5: # 초과근무 시간이 산정되지 못하기 때문에 cond_1 제외
+            pass
+        else:
+            inout=lib.sep_interval(merge_table.loc[idx,'INOUT'])
+            inout_start=inout[0]
+            inout_end=inout[2]
+            
+            if (temp_state["work_weekend"]):
+                if (inout_start=='') or (inout_end==''):
+                    pass
+                else:
+                    if lib.sub_time(inout_end, inout_start)>='0200':
+                        merge_table.at[idx, 'CAL_MEAL']='TRUE'
+            else:
+                # 한쪽 비어 있을 때 처리 (주말근무와 평일근무에 대해서)
+                # 1. 주말근무 - 한쪽이라도 비어 있으면 끝, 그게 아니면 출퇴근시간 차이가 2시간 이상일 때 급량비 TRUE
+                # 2. 평일근무 - 한쪽이라도 값이 존재하면 그 방향으로 급량비 판별
+                if inout_start!='':
+                    if inout_start<=min(lib.sub_time(std_start,'0100'),'0800'):
+                        merge_table.at[idx, 'CAL_MEAL']='TRUE'
+                if inout_end!='':
+                    if inout_end>=max(lib.add_time(std_end,'0100'),'1900'):
+                        merge_table.at[idx, 'CAL_MEAL']='TRUE'
+        return # exception_list 예외처리 끝
+    
+    if cond_1 or cond_2 or cond_3 or cond_4: # 일반 직원 중 4가지 조건 중 하나라도 만족하면 해당 행 작업 종료
         return
     
     if (temp_state["work_weekend"]):
         if (merge_table.loc[idx, 'CAL_OVERTIME'] >= '0200'): # 주말근무일 때 2시간 이상이어야 TRUE
             merge_table.at[idx, 'CAL_MEAL']='TRUE'
-        else:
-            return
+        return # 일반직원 주말 근무 끝
     
-    # 급량비 조건 만족하는지 (기준근로시간 기준 출근이 한시간 빠르거나 )
-    elif fix_start<=min(lib.sub_time(std_start,'0100'),'0800') or fix_end>=max(lib.add_time(std_end,'0100'),'1900'): 
-        merge_table.at[idx, 'CAL_MEAL']='TRUE'
-    # if (merge_table.loc[idx,'CAL_OVERTIME'])<'0100' or merge_table.loc[i]['FIX1']=='None' or len(merge_table.loc[i]['FIX1'])!=9
+    # 급량비 조건 만족하는지 (기준근로시간 기준 출근이 한시간 빠르거나 퇴근이 한시간 느릴 때 적용)
+    if fix_end!='':
+        if fix_end>=max(lib.add_time(std_end,'0100'),'1900'): 
+            merge_table.at[idx, 'CAL_MEAL']='TRUE'
+    if fix_start!='':
+        if fix_start<=min(lib.sub_time(std_start,'0100'),'0800'):
+            merge_table.at[idx, 'CAL_MEAL']='TRUE'
