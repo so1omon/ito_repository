@@ -38,7 +38,7 @@ oracle_insert_table="SELECT EMP_ID,SHIFT_CD,WORK_TYPE FROM EHR2011060.TAM5400_V 
 oracle_get_ehr_con_sql = """
 SELECT B.EMP_ID AS emp_id,NVL(B.CD18, '0') AS over_std_time, NVL(D.CNT, '0') AS dayoff_std_time, 
 (case when SUBSTR(B.EMP_ID,5,1)!='4' then NVL(floor((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6))/60)+MOD((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6)),60)/100,D.CNT)
-ELSE NVL(floor((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6))/60)+MOD((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6)),60)/100 , D.CNT)-D.USED_CNT END )
+ELSE ( CASE WHEN (B.EMP_ID='20204015' OR B.EMP_ID='20214001') THEN NVL(floor((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6))/60)+MOD((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6)),60)/100 , D.CNT)-D.USED_CNT+8 ELSE NVL(floor((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6))/60)+MOD((D.CNT*60 - (MOD((E.VAL*10),10)*10+((E.VAL*10)-MOD((E.VAL*10),10))*6)),60)/100 , D.CNT)-D.USED_CNT END) END )
 AS dayoff_rest_time,
 NVL(F.EHC, '30') AS p_edu_std_time, NVL(G.E_SUM, '0') AS p_edu_admit_time, NVL(H.EHC, '20') AS i_edu_std_time, 
 NVL(I.E_SUM, '0') AS i_edu_admit_time
@@ -63,14 +63,14 @@ LEFT JOIN (
     FROM EHR2011060.TAM6030 
     WHERE HOLI_CLASS = '0001' AND SUBSTR(EMP_ID,5,1)!='4'  AND (SUBSTR(USE_END_YMD, 1, 4) = (SELECT TO_CHAR(SYSDATE, 'YYYY')FROM DUAL) OR  SUBSTR(USE_END_YMD, 1, 4) = (SELECT TO_CHAR(SYSDATE, 'YYYY')FROM DUAL)+1)GROUP BY EMP_ID)
     UNION
-    (SELECT EMP_ID,(SUM(CRT_D_CNT)) AS CNT,NVL(SUM(case when use_d_cnt=0 and use_d_cnt+used_d_cnt=crt_d_cnt then 0 else used_d_cnt end),0) AS USED_CNT
+    (SELECT EMP_ID,(SUM(CRT_D_CNT)) AS CNT,NVL(SUM(case when (use_d_cnt=0 and use_d_cnt+used_d_cnt=crt_d_cnt)OR(used_d_cnt=crt_d_cnt OR use_d_cnt=crt_d_cnt) then 0 else used_d_cnt end),0) AS USED_CNT
     FROM EHR2011060.TAM6030 
     WHERE HOLI_CLASS = '0001' AND SUBSTR(EMP_ID,5,1)='4' GROUP BY EMP_ID)
 ) D ON A.EMP_ID = D.EMP_ID
 LEFT JOIN (
     WITH Z as(
          select emp_id as EMP_ID, ymd, SUM(CASE WHEN D_H_TYPE='H' THEN floor(((MOD((VAL*10),10)*10)+(VAL*10-(MOD((VAL*10),10)))*6)/60)+MOD(((MOD((VAL*10),10)*10)+(VAL*10-(MOD((VAL*10),10)))*6),60)/100 
-         ELSE to_number((CASE WHEN (substr((END_HM-STA_HM),1,1))>'1' THEN '8' ELSE (substr((END_HM-STA_HM),1,1))END)) END) AS TOTAL 
+         ELSE to_number((CASE WHEN (substr((END_HM-STA_HM),1,1))>'1' THEN 8*VAL ELSE 1 END)) END) AS TOTAL 
         from ehr2011060.tam5450
         WHERE ATTEND_CD = '0001' AND DEL_YN = 'N'
         group by emp_id, ymd
@@ -87,7 +87,7 @@ LEFT JOIN (
         )B on Z.EMP_ID = B.B_EMP_ID AND Z.YMD>=B.USE_STA_YMD AND Z.YMD<=B.USE_END_YMD GROUP BY EMP_ID
     UNION
     (SELECT EMP_ID,
-    SUM(CASE WHEN D_H_TYPE='H' THEN VAL ELSE to_number((CASE WHEN (substr((END_HM-STA_HM),1,1))>'1' THEN '8' ELSE (substr((END_HM-STA_HM),1,1))END)) END) AS VAL
+    SUM(CASE WHEN D_H_TYPE='H' THEN VAL ELSE to_number((CASE WHEN (substr((END_HM-STA_HM),1,1))>'1' THEN 8*VAL ELSE 1 END)) END) AS VAL
     FROM EHR2011060.TAM5450 
     WHERE ATTEND_CD = '0001' AND DEL_YN = 'N' AND (SUBSTR(EMP_ID,5,1)='4' OR SUBSTR(EMP_ID,5,1)='5' )  
     GROUP BY EMP_ID)
@@ -117,7 +117,8 @@ LEFT JOIN (
         FROM EHR2011060.TE3020
     )B ON A.EDU_CURRI_ID = B.EDU_CURRI_ID WHERE SUBSTR(END_YMD, 1, 4) = (SELECT TO_CHAR(SYSDATE, 'YYYY')FROM DUAL) AND B.ERG = '20' GROUP BY EMP_ID
 ) I ON A.EMP_ID = I.EMP_ID
-WHERE NOT B.EMP_ID is NULL
+WHERE B.EMP_ID is not null
+
 
 """
 
