@@ -45,16 +45,19 @@ try:
     first_table=pd.merge(first_table, second_table)
     first_table=first_table[db.col_first_merged_table]
     first_table['TOTAL_OVERTIME']=first_table['TOTAL_OVERTIME'].map(lambda x: lib.min_to_str(int(str(x).zfill(3))))
+    first_table['dayoff_rest_time']=first_table['dayoff_rest_time'].map(lambda x: str(x))
     
     fisrt_table=first_table.reset_index(inplace=True, drop=True)
     
-    parameters='%s,'*10
+    parameters='%s, '*10
     
     mysql_cur.execute('truncate table connect.gw_ehr_con')
     
     for i in range(len(first_table)):
         print(list(map(str,list(first_table.loc[i]))))
-        sql=f"INSERT INTO connect.gw_ehr_con values({parameters[:-2]})" #날짜별 NUM(사번연번) + 27개의 parameters
+        
+        sql=f"INSERT INTO connect.gw_ehr_con values ({parameters[:-2]})" #날짜별 NUM(사번연번) + 27개의 parameters
+        print(sql)
         mysql_cur.execute(sql, list(map(str,list(first_table.loc[i]))))
 
 except Exception as e:
