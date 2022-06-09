@@ -30,34 +30,32 @@ try:
     mysql_cur=mysql_conn.cursor() # mariadb 접속시 사용할 cursor
     print('MariDB access successfully!')
 
-    ora_cur.execute(oracle_get_ehr_con_sql)     #연차정보,
-    x=ora_cur.fetchall()
-    first_table=pd.DataFrame(x)
-    first_table.columns=db.col_first_table
-    first_table = first_table.drop(index=first_table.loc[first_table.dayoff_rest_time == None].index)
-    first_table.reset_index(inplace=True, drop=False)
-    print(pymysql_get_ehr_con_sql.format(*lib.month_interval(datetime.now())))
-    mysql_cur.execute(pymysql_get_ehr_con_sql.format(*lib.month_interval(datetime.now())))
-    x=mysql_cur.fetchall()
-    second_table=pd.DataFrame(x)
-    second_table.columns=db.col_second_table
+    ora_cur.execute(oracle_get_ehr_con_sql) # 개인별 연차잔여정보, 개인/기관 교육시간 조회
+    first_table=pd.DataFrame(ora_cur.fetchall())
     
-    first_table=pd.merge(first_table, second_table)
-    first_table=first_table[db.col_first_merged_table]
+    first_table.columns=db.col_first_table # 컬럼 설정
+    first_table = first_table.drop(index=first_table.loc[first_table.dayoff_rest_time == None].index) # 잘못된 연차잔여정보 삭제
+    first_table.reset_index(inplace=True, drop=False) # 삭제 후 꼭 index 재정렬을 해줘야 함
+    
+    mysql_cur.execute(pymysql_get_ehr_con_sql.format(*lib.month_interval(datetime.now()))) # 개인별 초과근무시간 조회
+    
+    second_table=pd.DataFrame(mysql_cur.fetchall())
+    second_table.columns=db.col_second_table # 컬럼 설정
+    
+    first_table=pd.merge(first_table, second_table); # oracle, mysql에서 받아온 각각의 정보 병합
+    first_table=first_table[db.col_first_merged_table]; # 컬럼 추가
+    first_table=first_table.fillna('0.0'); # 테스트계정같은 nan(비어있는 데이터) 존재 시 0.0으로 초기화
+    
+    # 총 초과근무 시간, 잔여 연차 시간 전처리
     first_table['TOTAL_OVERTIME']=first_table['TOTAL_OVERTIME'].map(lambda x: lib.min_to_str(int(str(x).zfill(3))))
-    first_table['dayoff_rest_time']=first_table['dayoff_rest_time'].map(lambda x: str(x))
-    
-    fisrt_table=first_table.reset_index(inplace=True, drop=True)
+    first_table['dayoff_rest_time']=first_table['dayoff_rest_time'].map(lambda x: str(int(float(x)*100)))
     
     parameters='%s, '*10
     
-    mysql_cur.execute('truncate table connect.gw_ehr_con')
+    mysql_cur.execute('truncate table connect.gw_ehr_con') # 테이블 비운 후 넣기
     
-    for i in range(len(first_table)):
-        print(list(map(str,list(first_table.loc[i]))))
-        
-        sql=f"INSERT INTO connect.gw_ehr_con values ({parameters[:-2]})" #날짜별 NUM(사번연번) + 27개의 parameters
-        print(sql)
+    for i in range(len(first_table)):        
+        sql=f"INSERT INTO connect.gw_ehr_con values ({parameters[:-2]})" # 연번 + 10개의 parameters
         mysql_cur.execute(sql, list(map(str,list(first_table.loc[i]))))
 
 except Exception as e:
