@@ -46,6 +46,9 @@ def insert_inout(today,merge_table, cur): #  기록기 시간 생성
                     WHERE WORK_DATE ={today}""")
     x=cur.fetchall()
     inout_table=pd.DataFrame(x)
+    if len(x)==0:
+        merge_table['INOUT']='~'
+        return merge_table
     inout_table.columns=db.col_inout_table
     
     for i in range(len(merge_table)):
