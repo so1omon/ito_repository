@@ -16,3 +16,7 @@ data/
 login_info.py
 /login_info.py
 ./login_info.py
+
+integrated/db.py
+/integrated/db.py
+./integrated/db.py
