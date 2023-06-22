@@ -47,5 +47,73 @@ cf) [] : DB 또는 dataframe 컬럼명
  > > 1008 : 초과근무 1004 : 기타 근무 1010 : 출장신청 1002 : 연차신청 1044 : 재택
 
 
+</br></br>
+두 가지 의존 파일 생성해야 함
 
-9999.12.31 제작 완료
+1. login_info.py
+```python
+cx_Oracle_info={
+    "id":"{ORACLE_USERNAME}",
+    "pw":"{ORACLE_PASSWORD}",
+    "host":"{ORACLE_HOST}"
+}
+
+pymysql_info={
+    "host":"{MYSQL_HOST}"
+    'user':"{MYSQL_USERNAME}"
+    'password':"{MYSQL_PASSWORD}",
+    'db':"{MYSQL_DATABASE}",
+    'charset':'utf8'
+}
+```
+
+2. integrated/db.py
+``` python
+import os
+def check_location(os_name): # 운영체제에 맞는 client location 가져오기 (윈도우, 리눅스)
+    if os_name=='Windows':
+        return 'instantclient_21_3'
+    elif os_name=='Linux':
+        return 'instantclient_21_6'
+
+# instantclient 환경변수 추가할 때 필요한 디렉토리명 리턴
+
+# Windows에서는 v21_3, Linux(중계 DB server) 에서는 v21_4 사용 중
+
+cx_Oracle_info={
+    "id":"{ORACLE_USERNAME}",
+    "pw":"{ORACLE_PASSWORD}",
+    "host":"{ORACLE_HOST}"
+}
+
+pymysql_info={
+    "host":"{MYSQL_HOST}"
+    'user':"{MYSQL_USERNAME}"
+    'password':"{MYSQL_PASSWORD}",
+    'db':"{MYSQL_DATABASE}",
+    'charset':'utf8'
+}
+
+col_inout_table=['EMP_CODE','WORK_DATE','WORK_CD','WORK_INFO','WORK_INFO_DAY','WORK_INFO_CLOCK','HOME_WORK_YN']
+
+col_origin_table=['EMP_ID','APPR_YMD','YMD','STA_HM','END_HM','TYPE','APPL_ID','DEL_YN','BF_APPL_ID','APPL_TXT','REWARD_TYPE', 'RSN']
+
+
+col_merge_table=['YMD','EMP_ID', 'NAME','ORG_NM','SHIFT_CD','WORK_TYPE','PLAN1','INOUT', 'FIX1','ERROR_INFO','DAYOFF1_TIME',
+ 
+                 'DAYOFF1_ID','DAYOFF2_TIME','DAYOFF2_ID','OVER1_TIME','OVER1_ID','BUSI_TRIP1_TIME','BUSI_TRIP1_ID',
+
+                 'BUSI_TRIP2_TIME','BUSI_TRIP2_ID','HOME_ID','ETC_INFO','ETC_ID','REWARD_TIME','REWARD_ID','CAL_OVERTIME',
+
+                 'CAL_MEAL','RSN']
+
+col_insert_table=['EMP_ID','SHIFT_CD','WORK_TYPE']
+
+col_first_table=['EMP_ID','over_std_time','dayoff_std_time', 'dayoff_rest_time','p_edu_std_time','p_edu_admit_time',
+                 'i_edu_std_time','i_edu_admit_time']
+
+col_second_table=['EMP_ID','NAME','TOTAL_OVERTIME']
+
+col_first_merged_table=['EMP_ID','NAME','TOTAL_OVERTIME','over_std_time','dayoff_std_time', 'dayoff_rest_time','p_edu_std_time','p_edu_admit_time',
+                 'i_edu_std_time','i_edu_admit_time']
+```
